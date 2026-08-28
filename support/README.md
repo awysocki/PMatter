@@ -88,10 +88,22 @@ Matter **requires** IPv6 enabled on the host network interface:
 * **`matt`**: Main Bash CLI entry point wrapper.
 * **`matter_cli.py`**: Asynchronous Python engine communicating with `python-matter-server` over WebSockets.
 * **`testm.py`**: Interactive terminal debugging script with live event stream subscription (`attribute_updated` socket pushes).
+* **`requirements.txt`**: Python package dependencies for `matter_cli.py`.
+* **`install.sh`**: Installs the Python dependencies (via `pip --user`) needed to run the CLI.
 
 ---
 
 ## 5. `matt` CLI Setup & Installation
+
+### Install Python Dependencies
+
+    ./install.sh
+
+This installs the required Python packages (currently just `websockets`)
+for the current user via `pip`. Re-run it any time `requirements.txt`
+changes.
+
+### Add `matt` to Your PATH
 
 To run `matt` from anywhere in your terminal without typing `python3` or referencing script paths:
 

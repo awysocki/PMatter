@@ -26,7 +26,7 @@ case "$1" in
         show_help
         ;;
     *)
-        echo "❌ Unknown command: $1"
+        echo "[FAIL] Unknown command: $1"
         echo ""
         show_help
         exit 1

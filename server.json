@@ -1,48 +1,34 @@
 {
-  "author": "you",
-  "email": "you@example.com",
-  "website": "https://github.com/yourname/PMatter",
-  "name": "Matter Node Server",
+  "name": "PMatter",
+  "docs": "https://github.com/awysocki/PMatter/blob/main/README.md",
+  "type": "python3",
+  "executable": "pmatter.py",
+  "install": "install.sh",
+  "description": "Matter node server. Connects to a python-matter-server instance over its websocket API, discovers paired Matter devices, and creates ISY nodes for each on/off endpoint.",
+  "notice": "The IP address and port of your python-matter-server instance are required in the configuration page.",
+  "shortPoll": "30",
+  "longPoll": "60",
+  "testMode": false,
+  "logLevel": "INFO",
+  "profile_version": "3.0.0",
   "version": "2026.8.1",
-  "shortPoll": 30,
-  "longPoll": 60,
-  "type": "local",
-  "logLevel": "info",
-  "notices": [],
-  "icon": "icon.png",
-  "documentationUrl": "https://github.com/yourname/PMatter/blob/main/README.md",
-  "releaseNotes": "https://github.com/yourname/PMatter/blob/main/README.md",
-  "releaseNotesUrl": "https://github.com/yourname/PMatter/blob/main/README.md",
-  "requestId": true,
-  "credentialsRequired": false,
-  "installedOnly": false,
-  "customConfigDocs": "See README.md for setup instructions.",
-  "configuration": [
+  "credits": [
     {
-      "name": "host",
-      "title": "Matter Server IP Address",
-      "defaultValue": "192.168.2.88",
-      "type": "text",
-      "desc": "IP address of the python-matter-server (matter-server) host.",
-      "isRequired": true,
-      "isList": false
-    },
-    {
-      "name": "port",
-      "title": "Matter Server Port",
-      "defaultValue": "5580",
-      "type": "text",
-      "desc": "Port of the python-matter-server websocket API.",
-      "isRequired": true,
-      "isList": false
+      "title": "PMatter: a NodeServer for python-matter-server Integration",
+      "author": "",
+      "version": "2026.8.1",
+      "date": "",
+      "source": "",
+      "license": ""
     }
   ],
-  "credentials": [],
-  "connections": [
-    {
-      "type": "local",
-      "protocol": "ws",
-      "port": 5580
-    }
-  ]
+  "store": {
+    "developer": "",
+    "purchaseOptions": [
+      {
+        "isPerpetual": true,
+        "price": 0
+      }
+    ]
+  }
 }

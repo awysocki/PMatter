@@ -14,10 +14,28 @@ from matter_client import MatterClient
 from nodes.matter_device import MatterDevice
 
 LOGGER = udi_interface.LOGGER
+Custom = udi_interface.Custom
 
 
 class Controller(udi_interface.Node):
     id = "controller"
+
+    # Field definitions shown to the user in the "Custom Typed
+    # Configuration Parameters" section of the dashboard. These are
+    # pushed to Polyglot on start() so the fields exist up front instead
+    # of the user having to add them manually.
+    TYPED_PARAMS = [
+        {
+            "name": "host",
+            "title": "Matter Server IP Address",
+            "isRequired": True,
+        },
+        {
+            "name": "port",
+            "title": "Matter Server Port",
+            "isRequired": True,
+        },
+    ]
 
     def __init__(self, polyglot, primary, address, name):
         super(Controller, self).__init__(polyglot, primary, address, name)
@@ -28,29 +46,41 @@ class Controller(udi_interface.Node):
         # node_id (int) -> ISY address (str) map, used to route live events
         self.node_address_map = {}
 
+        self.Notices = Custom(polyglot, "notices")
+        self.TypedParameters = Custom(polyglot, "customtypedparams")
+        self.TypedData = Custom(polyglot, "customtypeddata")
+
         self.poly.subscribe(self.poly.START, self.start, address)
-        self.poly.subscribe(self.poly.CUSTOMPARAMS, self.parameter_handler)
+        self.poly.subscribe(self.poly.CUSTOMTYPEDPARAMS, self.typedParameterHandler)
+        self.poly.subscribe(self.poly.CUSTOMTYPEDDATA, self.typedDataHandler)
         self.poly.subscribe(self.poly.POLL, self.poll)
         self.poly.subscribe(self.poly.STOP, self.stop)
 
         self.poly.ready()
         self.poly.addNode(self)
 
-    def parameter_handler(self, params):
-        self.poly.Notices.clear()
+    def typedParameterHandler(self, params):
+        self.TypedParameters.load(params)
 
-        host = (params.get("host") or "").strip()
-        port = (params.get("port") or "").strip()
+    def typedDataHandler(self, params):
+        self.TypedData.load(params)
+        self.check_params()
+
+    def check_params(self):
+        self.Notices.clear()
+
+        host = (self.TypedData.host or "").strip()
+        port = (self.TypedData.port or "").strip()
 
         if not host:
-            self.poly.Notices["host"] = "Please specify the Matter server IP address."
+            self.Notices["host"] = "Please specify the Matter server IP address."
             return
         if not port:
             port = "5580"
         try:
             int(port)
         except ValueError:
-            self.poly.Notices["port"] = "Port must be numeric."
+            self.Notices["port"] = "Port must be numeric."
             return
 
         self.host = host
@@ -64,10 +94,11 @@ class Controller(udi_interface.Node):
         LOGGER.info("Started Matter Node Server")
         self.poly.updateProfile()
         self.poly.setCustomParamsDoc()
+        # Define the input fields up front so they show up in the
+        # dashboard even before the user has entered anything.
+        self.TypedParameters.load(self.TYPED_PARAMS, True)
         self.setDriver("ST", 1)
-
-        if self.host and self.port:
-            self.connect_and_discover()
+        self.check_params()
 
     def connect_and_discover(self):
         if self.matter is not None:

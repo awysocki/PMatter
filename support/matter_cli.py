@@ -34,17 +34,17 @@ async def cmd_add(code):
   res = await send_command(payload)
 
   if "error" in res:
-    print(f"❌ Failed: {res['error']}")
+    print(f"[FAIL] Failed: {res['error']}")
   else:
     node_id = res.get("result", {}).get("node_id", "Unknown")
-    print(f"✅ Device paired successfully! Assigned Node ID: {node_id}")
+    print(f"[OK] Device paired successfully! Assigned Node ID: {node_id}")
 
 
 async def cmd_del(node_id):
   try:
     node_num = int(node_id)
   except ValueError:
-    print("❌ Error: Node ID must be a number.")
+    print("[FAIL] Error: Node ID must be a number.")
     return
 
   print(f"Removing Node {node_num} from Matter fabric...")
@@ -56,9 +56,9 @@ async def cmd_del(node_id):
   res = await send_command(payload)
 
   if "error" in res:
-    print(f"❌ Removal Failed: {res['error']}")
+    print(f"[FAIL] Removal Failed: {res['error']}")
   else:
-    print(f"✅ Node {node_num} successfully removed.")
+    print(f"[OK] Node {node_num} successfully removed.")
 
 
 async def cmd_list():
@@ -73,7 +73,7 @@ async def cmd_list():
   print("\n================ PAIRED MATTER DEVICES ================")
   for n in nodes:
     nid = n.get("node_id")
-    avail = "ONLINE 🟢" if n.get("available") else "OFFLINE 🔴"
+    avail = "ONLINE" if n.get("available") else "OFFLINE"
     attrs = n.get("attributes", {})
 
     vendor = attrs.get("0/40/1", "Unknown Vendor")
@@ -81,7 +81,7 @@ async def cmd_list():
     serial = attrs.get("0/40/15", "N/A")
     is_on = attrs.get("1/6/0")
     state_str = (
-        "ON 💡" if is_on is True else "OFF 🔌" if is_on is False else "N/A"
+        "ON" if is_on is True else "OFF" if is_on is False else "N/A"
     )
 
     print(f" Node ID {nid}: {vendor} {product} [{avail}]")
@@ -93,7 +93,7 @@ async def cmd_status(node_id):
   try:
     node_num = int(node_id)
   except ValueError:
-    print("❌ Error: Node ID must be a number.")
+    print("[FAIL] Error: Node ID must be a number.")
     return
 
   payload = {"message_id": "req_status", "command": "get_nodes"}
@@ -103,7 +103,7 @@ async def cmd_status(node_id):
   target = next((n for n in nodes if n.get("node_id") == node_num), None)
 
   if not target:
-    print(f"❌ Node ID {node_num} not found on server.")
+    print(f"[FAIL] Node ID {node_num} not found on server.")
     return
 
   attrs = target.get("attributes", {})
@@ -112,7 +112,7 @@ async def cmd_status(node_id):
   serial = attrs.get("0/40/15", "Unknown")
   fw = attrs.get("0/40/10", "Unknown")
   is_on = attrs.get("1/6/0")
-  state_str = "ON 💡" if is_on is True else "OFF 🔌"
+  state_str = "ON" if is_on is True else "OFF"
 
   print(f"\n--- Node {node_num} Status ---")
   print(f"  Device:       {vendor} {product}")
@@ -126,7 +126,7 @@ async def cmd_toggle(node_id, action):
   try:
     node_num = int(node_id)
   except ValueError:
-    print("❌ Error: Node ID must be a number.")
+    print("[FAIL] Error: Node ID must be a number.")
     return
 
   payload = {
@@ -140,7 +140,7 @@ async def cmd_toggle(node_id, action):
       },
   }
   await send_command(payload)
-  print(f"✅ Node {node_num} turned {action.upper()}.")
+  print(f"[OK] Node {node_num} turned {action.upper()}.")
 
 
 def main():
