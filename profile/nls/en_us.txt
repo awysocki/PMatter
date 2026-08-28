@@ -1,4 +1,4 @@
-ND-controller-NAME = Matter Controller
+ND-controller-NAME = PMatter Controller
 ND-controller-ICON = GenericCtl
 ND-matterdevice-NAME = Matter Device
 ND-matterdevice-ICON = GenericRsp

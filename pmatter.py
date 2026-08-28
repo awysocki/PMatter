@@ -20,7 +20,7 @@ if __name__ == "__main__":
         polyglot = udi_interface.Interface([])
         polyglot.start()
 
-        Controller(polyglot, "controller", "controller", "Matter Controller")
+        Controller(polyglot, "controller", "controller", "PMatter Controller")
 
         polyglot.runForever()
     except (KeyboardInterrupt, SystemExit):
