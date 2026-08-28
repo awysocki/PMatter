@@ -1,0 +1,207 @@
+"""
+Async client wrapper around the python-matter-server websocket API.
+
+This module is based on the working test script (testm.py) that
+validated connectivity, subscriptions, status queries and on/off
+commands against a real Tapo S505 Matter device.
+"""
+import asyncio
+import itertools
+import json
+import logging
+import threading
+
+import websockets
+
+LOGGER = logging.getLogger(__name__)
+
+# Common Matter cluster/attribute IDs we care about for simple on/off devices
+CLUSTER_ONOFF = 6
+ATTR_ONOFF = 0
+ONOFF_PATH_SUFFIX = "/6/0"
+
+
+class MatterClient:
+    """
+    Runs its own asyncio event loop in a background thread so it can be
+    driven from the synchronous Polyglot node server code, while still
+    using an async websocket connection under the hood (same approach
+    proven out in testm.py).
+    """
+
+    def __init__(self, host, port, on_attribute_update=None, on_node_removed=None):
+        self.host = host
+        self.port = port
+        self.uri = f"ws://{host}:{port}/ws"
+
+        self.on_attribute_update = on_attribute_update
+        self.on_node_removed = on_node_removed
+
+        self._loop = None
+        self._thread = None
+        self._ws = None
+        self._connected = threading.Event()
+        self._stop = threading.Event()
+        self._msg_counter = itertools.count(1)
+        self._pending = {}
+        self._pending_lock = threading.Lock()
+
+    # ------------------------------------------------------------------
+    # Lifecycle
+    # ------------------------------------------------------------------
+    def start(self):
+        """Start the background event loop thread and connect."""
+        self._thread = threading.Thread(target=self._run_loop, daemon=True)
+        self._thread.start()
+        connected = self._connected.wait(timeout=15)
+        if not connected:
+            LOGGER.error("Timed out connecting to Matter server at %s", self.uri)
+        return connected
+
+    def stop(self):
+        self._stop.set()
+        if self._loop and self._loop.is_running():
+            asyncio.run_coroutine_threadsafe(self._close(), self._loop)
+        if self._thread:
+            self._thread.join(timeout=5)
+
+    def _run_loop(self):
+        self._loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(self._loop)
+        try:
+            self._loop.run_until_complete(self._main())
+        except Exception as e:
+            LOGGER.error("Matter client loop terminated: %s", e)
+        finally:
+            self._connected.clear()
+
+    async def _close(self):
+        if self._ws is not None:
+            await self._ws.close()
+
+    async def _main(self):
+        LOGGER.info("Connecting to Matter Server at %s ...", self.uri)
+        async with websockets.connect(self.uri, max_size=None) as ws:
+            self._ws = ws
+            # Read initial server handshake payload
+            await ws.recv()
+
+            # Subscribe to live attribute update events across the fabric
+            await ws.send(
+                json.dumps({"message_id": "sub_1", "command": "start_listening"})
+            )
+
+            self._connected.set()
+            LOGGER.info("Connected to Matter server, subscribed to events.")
+
+            async for message in ws:
+                if self._stop.is_set():
+                    break
+                self._handle_message(message)
+
+    # ------------------------------------------------------------------
+    # Message handling
+    # ------------------------------------------------------------------
+    def _handle_message(self, message):
+        try:
+            data = json.loads(message)
+        except (ValueError, TypeError):
+            LOGGER.warning("Received non-JSON message from Matter server")
+            return
+
+        event_type = data.get("event")
+
+        # Live push updates (app / wall button toggles, etc.)
+        if event_type == "attribute_updated":
+            evt_data = data.get("data", [])
+            if len(evt_data) >= 3:
+                node_id, attr_path, value = evt_data[0], evt_data[1], evt_data[2]
+                if self.on_attribute_update:
+                    try:
+                        self.on_attribute_update(node_id, attr_path, value)
+                    except Exception as e:
+                        LOGGER.error("Error in attribute update callback: %s", e)
+            return
+
+        if event_type == "node_removed":
+            node_id = data.get("data")
+            if self.on_node_removed and node_id is not None:
+                try:
+                    self.on_node_removed(node_id)
+                except Exception as e:
+                    LOGGER.error("Error in node removed callback: %s", e)
+            return
+
+        # Direct command / request responses
+        message_id = data.get("message_id")
+        if message_id is not None:
+            with self._pending_lock:
+                fut = self._pending.pop(message_id, None)
+            if fut is not None and self._loop is not None:
+                self._loop.call_soon_threadsafe(fut.set_result, data)
+
+    # ------------------------------------------------------------------
+    # Public synchronous API (safe to call from the Polyglot main thread)
+    # ------------------------------------------------------------------
+    def send_command(self, command, args=None, timeout=10):
+        """
+        Send a command to the Matter server and block (from the caller's
+        thread) until the response arrives or the timeout expires.
+        Returns the parsed response dict, or None on failure/timeout.
+        """
+        if self._loop is None or not self._loop.is_running():
+            LOGGER.error("Matter client loop is not running")
+            return None
+
+        message_id = f"cmd_{next(self._msg_counter)}"
+        payload = {"message_id": message_id, "command": command}
+        if args is not None:
+            payload["args"] = args
+
+        future = asyncio.run_coroutine_threadsafe(
+            self._send_and_wait(message_id, payload), self._loop
+        )
+        try:
+            return future.result(timeout=timeout)
+        except Exception as e:
+            LOGGER.error("Command '%s' failed/timed out: %s", command, e)
+            return None
+
+    async def _send_and_wait(self, message_id, payload):
+        fut = self._loop.create_future()
+        with self._pending_lock:
+            self._pending[message_id] = fut
+        await self._ws.send(json.dumps(payload))
+        return await fut
+
+    # ------------------------------------------------------------------
+    # Convenience wrappers
+    # ------------------------------------------------------------------
+    def get_nodes(self):
+        """Return the list of Matter node dicts known to the server."""
+        response = self.send_command("get_nodes")
+        if response is None:
+            return []
+        return response.get("result", []) or []
+
+    def set_onoff(self, node_id, endpoint_id, turn_on):
+        return self.send_command(
+            "device_command",
+            {
+                "node_id": node_id,
+                "endpoint_id": endpoint_id,
+                "cluster_id": CLUSTER_ONOFF,
+                "command_name": "on" if turn_on else "off",
+            },
+        )
+
+    def toggle(self, node_id, endpoint_id):
+        return self.send_command(
+            "device_command",
+            {
+                "node_id": node_id,
+                "endpoint_id": endpoint_id,
+                "cluster_id": CLUSTER_ONOFF,
+                "command_name": "toggle",
+            },
+        )

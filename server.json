@@ -1,0 +1,48 @@
+{
+  "author": "you",
+  "email": "you@example.com",
+  "website": "https://github.com/yourname/PMatter",
+  "name": "Matter Node Server",
+  "version": "2026.8.1",
+  "shortPoll": 30,
+  "longPoll": 60,
+  "type": "local",
+  "logLevel": "info",
+  "notices": [],
+  "icon": "icon.png",
+  "documentationUrl": "https://github.com/yourname/PMatter/blob/main/README.md",
+  "releaseNotes": "https://github.com/yourname/PMatter/blob/main/README.md",
+  "releaseNotesUrl": "https://github.com/yourname/PMatter/blob/main/README.md",
+  "requestId": true,
+  "credentialsRequired": false,
+  "installedOnly": false,
+  "customConfigDocs": "See README.md for setup instructions.",
+  "configuration": [
+    {
+      "name": "host",
+      "title": "Matter Server IP Address",
+      "defaultValue": "192.168.2.88",
+      "type": "text",
+      "desc": "IP address of the python-matter-server (matter-server) host.",
+      "isRequired": true,
+      "isList": false
+    },
+    {
+      "name": "port",
+      "title": "Matter Server Port",
+      "defaultValue": "5580",
+      "type": "text",
+      "desc": "Port of the python-matter-server websocket API.",
+      "isRequired": true,
+      "isList": false
+    }
+  ],
+  "credentials": [],
+  "connections": [
+    {
+      "type": "local",
+      "protocol": "ws",
+      "port": 5580
+    }
+  ]
+}

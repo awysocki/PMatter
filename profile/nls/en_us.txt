@@ -1,0 +1,16 @@
+ND-controller-NAME = Matter Controller
+ND-controller-ICON = GenericCtl
+ND-matterdevice-NAME = Matter Device
+ND-matterdevice-ICON = GenericRsp
+
+CMD-DISCOVER-NAME = Discover
+CMD-QUERY-NAME = Query
+CMD-DON-NAME = On
+CMD-DOF-NAME = Off
+CMD-TOGGLE-NAME = Toggle
+
+ST-CTL-ST-NAME = Status
+ST-MD-ST-NAME = Status
+
+BOOL-0 = Off
+BOOL-1 = On

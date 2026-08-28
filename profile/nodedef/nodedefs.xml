@@ -1,0 +1,31 @@
+<nodeDefs>
+  <nodeDef id="controller" nls="CTL">
+    <editors />
+    <sts>
+      <st id="ST" editor="bool" />
+    </sts>
+    <cmds>
+      <sends />
+      <accepts>
+        <cmd id="DISCOVER" />
+        <cmd id="QUERY" />
+      </accepts>
+    </cmds>
+  </nodeDef>
+
+  <nodeDef id="matterdevice" nls="MD">
+    <editors />
+    <sts>
+      <st id="ST" editor="bool" />
+    </sts>
+    <cmds>
+      <sends />
+      <accepts>
+        <cmd id="DON" />
+        <cmd id="DOF" />
+        <cmd id="TOGGLE" />
+        <cmd id="QUERY" />
+      </accepts>
+    </cmds>
+  </nodeDef>
+</nodeDefs>
