@@ -8,12 +8,12 @@ commands against a real Tapo S505 Matter device.
 import asyncio
 import itertools
 import json
-import logging
 import threading
 
+import udi_interface
 import websockets
 
-LOGGER = logging.getLogger(__name__)
+LOGGER = udi_interface.LOGGER
 
 # Common Matter cluster/attribute IDs we care about for simple on/off devices
 CLUSTER_ONOFF = 6
@@ -158,13 +158,16 @@ class MatterClient:
         if args is not None:
             payload["args"] = args
 
+        LOGGER.info("Sending command '%s' args=%s (id=%s)", command, args, message_id)
         future = asyncio.run_coroutine_threadsafe(
             self._send_and_wait(message_id, payload), self._loop
         )
         try:
-            return future.result(timeout=timeout)
+            result = future.result(timeout=timeout)
+            LOGGER.info("Command '%s' (id=%s) response: %s", command, message_id, result)
+            return result
         except Exception as e:
-            LOGGER.error("Command '%s' failed/timed out: %s", command, e)
+            LOGGER.error("Command '%s' (id=%s) failed/timed out: %s", command, message_id, e)
             return None
 
     async def _send_and_wait(self, message_id, payload):
@@ -191,7 +194,8 @@ class MatterClient:
                 "node_id": node_id,
                 "endpoint_id": endpoint_id,
                 "cluster_id": CLUSTER_ONOFF,
-                "command_name": "on" if turn_on else "off",
+                "command_name": "On" if turn_on else "Off",
+                "payload": {},
             },
         )
 
@@ -202,6 +206,7 @@ class MatterClient:
                 "node_id": node_id,
                 "endpoint_id": endpoint_id,
                 "cluster_id": CLUSTER_ONOFF,
-                "command_name": "toggle",
+                "command_name": "Toggle",
+                "payload": {},
             },
         )

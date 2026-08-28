@@ -7,6 +7,22 @@ import udi_interface
 LOGGER = udi_interface.LOGGER
 
 
+def _command_succeeded(result):
+    """
+    The python-matter-server 'device_command' response includes an
+    'error_code' field. 0 (or absent) means success; any other value
+    (e.g. 8 = UNSUPPORTED_ACCESS/failure) means the command was rejected.
+    """
+    if result is None:
+        return False
+    if "error" in result:
+        return False
+    error_code = result.get("error_code")
+    if error_code not in (None, 0):
+        return False
+    return True
+
+
 class MatterDevice(udi_interface.Node):
     id = "matterdevice"
 
@@ -33,11 +49,23 @@ class MatterDevice(udi_interface.Node):
         self.reportDrivers()
 
     def cmd_don(self, command=None):
-        self.matter.set_onoff(self.node_id, self.endpoint_id, True)
+        result = self.matter.set_onoff(self.node_id, self.endpoint_id, True)
+        if not _command_succeeded(result):
+            LOGGER.error(
+                "DON command failed for node %s endpoint %s: %s",
+                self.node_id, self.endpoint_id, result,
+            )
+            return
         self.setDriver("ST", 1)
 
     def cmd_dof(self, command=None):
-        self.matter.set_onoff(self.node_id, self.endpoint_id, False)
+        result = self.matter.set_onoff(self.node_id, self.endpoint_id, False)
+        if not _command_succeeded(result):
+            LOGGER.error(
+                "DOF command failed for node %s endpoint %s: %s",
+                self.node_id, self.endpoint_id, result,
+            )
+            return
         self.setDriver("ST", 0)
 
     def cmd_toggle(self, command=None):
