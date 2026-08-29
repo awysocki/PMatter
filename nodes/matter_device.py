@@ -228,5 +228,5 @@ class MatterDimmer(MatterDevice):
 
     drivers = [
         {"driver": "ST", "value": 0, "uom": 51},
-        {"driver": "GV0", "value": 0, "uom": 78},
+        {"driver": "GV0", "value": 0, "uom": 25},
     ]
