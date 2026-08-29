@@ -126,7 +126,7 @@ To run `matt` from anywhere in your terminal without typing `python3` or referen
 
 ## 6. `matt` CLI Command Reference
 
-The `matt` CLI provides clean shell commands to interact with your local Matter server over WebSockets:
+The `matt` CLI provides a small, focused set of shell commands to interact with the local Matter server over WebSockets. Its intent is not to replace a full commissioning or provisioning workflow. In practice, it is used mainly for managing devices that are already defined by their manufacturer programs and are already shared with the fabric. That means adding or removing known shared devices and toggling them once they exist, while full device commissioning belongs above this project’s scope and is handled separately from the helper tooling.
 
 ### Device Control
 Turn switches ON or OFF directly by Node ID:

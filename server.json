@@ -11,12 +11,12 @@
   "testMode": false,
   "logLevel": "INFO",
   "profile_version": "3.0.0",
-  "version": "2026.8.4",
+  "version": "2026.8.5",
   "credits": [
     {
       "title": "PMatter: a NodeServer for python-matter-server Integration",
       "author": "",
-      "version": "2026.8.4",
+      "version": "2026.8.5",
       "date": "",
       "source": "",
       "license": ""
