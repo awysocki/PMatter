@@ -11,7 +11,13 @@ Handles:
 import udi_interface
 
 from matter_client import MatterClient
-from nodes.matter_device import MatterDevice, MatterDimmer
+from nodes.matter_device import (
+    MatterDevice,
+    MatterDeviceExt,
+    MatterDimmer,
+    MatterDimmerExt,
+    parse_energy_attributes,
+)
 
 LOGGER = udi_interface.LOGGER
 Custom = udi_interface.Custom
@@ -183,12 +189,15 @@ class Controller(udi_interface.Node):
             is_dimmer = endpoint_id in endpoints_with_level
             onoff_path = f"{endpoint_id}/6/0"
             is_on = attributes.get(onoff_path)
+            energy_data = parse_energy_attributes(attributes, endpoint_id)
+            has_energy = len(energy_data) > 0
 
             if is_dimmer:
                 level = attributes.get(f"{endpoint_id}/8/0")
                 initial_state = 1 if is_on else 0
                 initial_pct = MatterDimmer._to_pct(is_on, level)
-                device = MatterDimmer(
+                cls = MatterDimmerExt if has_energy else MatterDimmer
+                device = cls(
                     self.poly,
                     self.address,
                     address,
@@ -201,7 +210,8 @@ class Controller(udi_interface.Node):
                 device._last_level = level
             else:
                 initial_state = 1 if is_on else 0
-                device = MatterDevice(
+                cls = MatterDeviceExt if has_energy else MatterDevice
+                device = cls(
                     self.poly,
                     self.address,
                     address,
@@ -215,6 +225,9 @@ class Controller(udi_interface.Node):
             device.setDriver("ST", initial_state)
             if is_dimmer:
                 device.setDriver("GV0", initial_pct)
+            for drv, val in energy_data.items():
+                if val is not None:
+                    device.setDriver(drv, val)
             self.node_address_map[node_id] = address
             LOGGER.info(
                 "Added Matter %s node '%s' (node %s endpoint %s)",
@@ -247,15 +260,12 @@ class Controller(udi_interface.Node):
             return
         cluster, attribute = parts[1], parts[2]
 
-        if isinstance(node, MatterDimmer):
-            # OnOff and CurrentLevel arrive as separate events. Update the
-            # node's cached state directly from the event data - do NOT
-            # call node.query()/get_nodes() here, since this callback runs
-            # on the Matter client's own background thread and a blocking
+        if hasattr(node, "on_attribute"):
+            # Update the node's cached state directly from event data -
+            # do NOT call node.query()/get_nodes() here, since this callback
+            # runs on the Matter client's background thread and a blocking
             # send_command from that thread would deadlock until timeout.
             node.on_attribute(cluster, attribute, value)
-        elif cluster == "6" and attribute == "0":
-            node.setDriver("ST", 1 if value else 0)
 
     def handle_node_removed(self, node_id):
         address = self.node_address_map.pop(node_id, None)

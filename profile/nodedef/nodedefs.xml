@@ -16,7 +16,27 @@
   <nodeDef id="matterdevice" nls="MD">
     <editors />
     <sts>
-      <st id="ST" editor="onOff" />
+      <st id="ST" editor="bool" />
+    </sts>
+    <cmds>
+      <sends />
+      <accepts>
+        <cmd id="DON" />
+        <cmd id="DOF" />
+        <cmd id="TOGGLE" />
+        <cmd id="QUERY" />
+      </accepts>
+    </cmds>
+  </nodeDef>
+
+  <nodeDef id="matterdevice_ext" nls="MD_EXT">
+    <editors />
+    <sts>
+      <st id="ST" editor="bool" />
+      <st id="CC" editor="watt" />
+      <st id="TPW" editor="kwh" />
+      <st id="CV" editor="volt" />
+      <st id="CA" editor="amp" />
     </sts>
     <cmds>
       <sends />
@@ -32,8 +52,35 @@
   <nodeDef id="matterdimmer" nls="MDIM">
     <editors />
     <sts>
-      <st id="ST" editor="onOff" />
+      <st id="ST" editor="bool" />
       <st id="GV0" editor="pct" />
+    </sts>
+    <cmds>
+      <sends />
+      <accepts>
+        <cmd id="DON">
+          <p id="" editor="pct" init="GV0" />
+        </cmd>
+        <cmd id="DOF" />
+        <cmd id="DFON" />
+        <cmd id="DFOF" />
+        <cmd id="BRT" />
+        <cmd id="DIM" />
+        <cmd id="TOGGLE" />
+        <cmd id="QUERY" />
+      </accepts>
+    </cmds>
+  </nodeDef>
+
+  <nodeDef id="matterdimmer_ext" nls="MDIM_EXT">
+    <editors />
+    <sts>
+      <st id="ST" editor="bool" />
+      <st id="GV0" editor="pct" />
+      <st id="CC" editor="watt" />
+      <st id="TPW" editor="kwh" />
+      <st id="CV" editor="volt" />
+      <st id="CA" editor="amp" />
     </sts>
     <cmds>
       <sends />

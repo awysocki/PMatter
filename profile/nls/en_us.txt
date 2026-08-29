@@ -2,8 +2,12 @@ ND-controller-NAME = PMatter Controller
 ND-controller-ICON = GenericCtl
 ND-matterdevice-NAME = Matter Device
 ND-matterdevice-ICON = GenericRsp
+ND-matterdevice_ext-NAME = Matter Device (Energy)
+ND-matterdevice_ext-ICON = GenericRsp
 ND-matterdimmer-NAME = Matter Dimmer
 ND-matterdimmer-ICON = GenericRsp
+ND-matterdimmer_ext-NAME = Matter Dimmer (Energy)
+ND-matterdimmer_ext-ICON = GenericRsp
 
 CMD-DISCOVER-NAME = Discover
 CMD-QUERY-NAME = Query
@@ -16,9 +20,24 @@ CMD-DIM-NAME = Dim
 CMD-TOGGLE-NAME = Toggle
 
 ST-CTL-ST-NAME = Status
+
 ST-MD-ST-NAME = Status
+
+ST-MD_EXT-ST-NAME = Status
+ST-MD_EXT-CC-NAME = Current Power
+ST-MD_EXT-TPW-NAME = Total Energy
+ST-MD_EXT-CV-NAME = Voltage
+ST-MD_EXT-CA-NAME = Current
+
 ST-MDIM-ST-NAME = Status
 ST-MDIM-GV0-NAME = Brightness
+
+ST-MDIM_EXT-ST-NAME = Status
+ST-MDIM_EXT-GV0-NAME = Brightness
+ST-MDIM_EXT-CC-NAME = Current Power
+ST-MDIM_EXT-TPW-NAME = Total Energy
+ST-MDIM_EXT-CV-NAME = Voltage
+ST-MDIM_EXT-CA-NAME = Current
 
 BOOL-0 = Off
 BOOL-1 = On

@@ -28,8 +28,138 @@ def _command_succeeded(result):
     return True
 
 
+def parse_energy_attributes(attributes, endpoint_id):
+    """
+    Extract energy/power metrics (CC, TPW, CV, CA) for a specific endpoint
+    from the Matter attributes dictionary.
+    Returns a dict like {'CC': 12.5, 'TPW': 1.23, 'CV': 120.1, 'CA': 0.1}
+    with any present metrics.
+    """
+    ep = str(endpoint_id)
+    res = {}
+
+    # --- Current Power (CC - Watts) ---
+    p_mw = attributes.get(f"{ep}/144/8")
+    if p_mw is None:
+        p_mw = attributes.get(f"{ep}/144/13")
+    if p_mw is not None and isinstance(p_mw, (int, float)):
+        res["CC"] = round(p_mw / 1000.0, 2)
+    else:
+        p_w = attributes.get(f"{ep}/1794/1024")
+        if p_w is None:
+            p_w = attributes.get(f"{ep}/2820/1291")
+        if p_w is None:
+            p_w = attributes.get(f"{ep}/2820/0")
+        if p_w is not None and isinstance(p_w, (int, float)):
+            res["CC"] = round(float(p_w), 2)
+
+    # --- Total Energy (TPW - kWh) ---
+    e_raw = attributes.get(f"{ep}/145/0")
+    if isinstance(e_raw, dict):
+        e_raw = e_raw.get("energy")
+    if e_raw is not None and isinstance(e_raw, (int, float)):
+        if e_raw > 100000:
+            res["TPW"] = round(e_raw / 1000000000.0, 3)
+        else:
+            res["TPW"] = round(e_raw / 1000.0, 3)
+    else:
+        e_sm = attributes.get(f"{ep}/1794/0")
+        if e_sm is not None and isinstance(e_sm, (int, float)):
+            if e_sm > 10000:
+                res["TPW"] = round(e_sm / 1000.0, 3)
+            else:
+                res["TPW"] = round(float(e_sm), 3)
+
+    # --- Voltage (CV - Volts) ---
+    v_raw = attributes.get(f"{ep}/144/4")
+    if v_raw is None:
+        v_raw = attributes.get(f"{ep}/144/11")
+    if v_raw is not None and isinstance(v_raw, (int, float)):
+        res["CV"] = round(v_raw / 1000.0, 1)
+    else:
+        v_em = attributes.get(f"{ep}/2820/1285")
+        if v_em is not None and isinstance(v_em, (int, float)):
+            if v_em > 1000:
+                res["CV"] = round(v_em / 1000.0, 1)
+            else:
+                res["CV"] = round(float(v_em), 1)
+
+    # --- Current (CA - Amps) ---
+    i_raw = attributes.get(f"{ep}/144/5")
+    if i_raw is None:
+        i_raw = attributes.get(f"{ep}/144/12")
+    if i_raw is not None and isinstance(i_raw, (int, float)):
+        res["CA"] = round(i_raw / 1000.0, 2)
+    else:
+        i_em = attributes.get(f"{ep}/2820/1288")
+        if i_em is not None and isinstance(i_em, (int, float)):
+            if i_em > 1000:
+                res["CA"] = round(i_em / 1000.0, 2)
+            else:
+                res["CA"] = round(float(i_em), 2)
+
+    return res
+
+
+def _parse_energy_event(cluster, attribute, value):
+    """
+    Parse a single attribute update event for energy/power clusters.
+    Returns (driver_id, value) or (None, None).
+    """
+    if value is None:
+        return None, None
+
+    # Cluster 144: Electrical Power Measurement
+    if cluster == "144":
+        if attribute in ("8", "13") and isinstance(value, (int, float)):
+            return "CC", round(value / 1000.0, 2)
+        elif attribute in ("4", "11") and isinstance(value, (int, float)):
+            return "CV", round(value / 1000.0, 1)
+        elif attribute in ("5", "12") and isinstance(value, (int, float)):
+            return "CA", round(value / 1000.0, 2)
+
+    # Cluster 145: Electrical Energy Measurement
+    elif cluster == "145":
+        if attribute == "0":
+            val = value.get("energy") if isinstance(value, dict) else value
+            if isinstance(val, (int, float)):
+                if val > 100000:
+                    return "TPW", round(val / 1000000000.0, 3)
+                else:
+                    return "TPW", round(val / 1000.0, 3)
+
+    # Cluster 1794: Simple Metering
+    elif cluster == "1794":
+        if attribute == "0" and isinstance(value, (int, float)):
+            if value > 10000:
+                return "TPW", round(value / 1000.0, 3)
+            else:
+                return "TPW", round(float(value), 3)
+        elif attribute == "1024" and isinstance(value, (int, float)):
+            return "CC", round(float(value), 2)
+
+    # Cluster 2820: Electrical Measurement
+    elif cluster == "2820":
+        if attribute in ("1291", "0") and isinstance(value, (int, float)):
+            return "CC", round(float(value), 2)
+        elif attribute == "1285" and isinstance(value, (int, float)):
+            if value > 1000:
+                return "CV", round(value / 1000.0, 1)
+            else:
+                return "CV", round(float(value), 1)
+        elif attribute == "1288" and isinstance(value, (int, float)):
+            if value > 1000:
+                return "CA", round(value / 1000.0, 2)
+            else:
+                return "CA", round(float(value), 2)
+
+    return None, None
+
+
 class MatterDevice(udi_interface.Node):
     id = "matterdevice"
+
+    drivers = [{"driver": "ST", "value": 0, "uom": 2}]
 
     def __init__(self, polyglot, primary, address, name, matter_client,
                  node_id, endpoint_id):
@@ -50,8 +180,22 @@ class MatterDevice(udi_interface.Node):
             attributes = matter_node.get("attributes", {}) or {}
             value = attributes.get(f"{self.endpoint_id}/6/0")
             self.setDriver("ST", 1 if value else 0)
+            energy_data = parse_energy_attributes(attributes, self.endpoint_id)
+            for drv, val in energy_data.items():
+                if val is not None:
+                    self.setDriver(drv, val)
             break
         self.reportDrivers()
+
+    def on_attribute(self, cluster, attribute, value):
+        if cluster == "6" and attribute == "0":
+            self.setDriver("ST", 1 if value else 0)
+            self.reportDrivers()
+        else:
+            drv, val = _parse_energy_event(cluster, attribute, value)
+            if drv and val is not None:
+                self.setDriver(drv, val)
+                self.reportDrivers()
 
     def cmd_don(self, command=None):
         result = self.matter.set_onoff(self.node_id, self.endpoint_id, True)
@@ -83,7 +227,18 @@ class MatterDevice(udi_interface.Node):
         "QUERY": query,
     }
 
-    drivers = [{"driver": "ST", "value": 0, "uom": 25}]
+
+class MatterDeviceExt(MatterDevice):
+    """Matter on/off device with energy measurement capabilities."""
+    id = "matterdevice_ext"
+
+    drivers = [
+        {"driver": "ST", "value": 0, "uom": 2},
+        {"driver": "CC", "value": 0, "uom": 73},
+        {"driver": "TPW", "value": 0, "uom": 33},
+        {"driver": "CV", "value": 0, "uom": 72},
+        {"driver": "CA", "value": 0, "uom": 1},
+    ]
 
 
 class MatterDimmer(MatterDevice):
@@ -116,25 +271,33 @@ class MatterDimmer(MatterDevice):
             self._last_onoff = is_on
             self._last_level = level
             self._apply_state()
+            energy_data = parse_energy_attributes(attributes, self.endpoint_id)
+            for drv, val in energy_data.items():
+                if val is not None:
+                    self.setDriver(drv, val)
             break
         self.reportDrivers()
 
     def on_attribute(self, cluster, attribute, value):
         """
-        Update cached on/off + level state directly from a live
-        'attribute_updated' push event, and refresh drivers from the
-        cache. This is called from the Matter client's own background
-        thread, so it must NOT make any blocking send_command/get_nodes
-        calls.
+        Update cached state directly from a live 'attribute_updated' push
+        event, and refresh drivers. This is called from the Matter client's
+        own background thread, so it must NOT make any blocking send_command
+        or get_nodes calls.
         """
         if cluster == "6" and attribute == "0":
             self._last_onoff = value
+            self._apply_state()
+            self.reportDrivers()
         elif cluster == "8" and attribute == "0":
             self._last_level = value
+            self._apply_state()
+            self.reportDrivers()
         else:
-            return
-        self._apply_state()
-        self.reportDrivers()
+            drv, val = _parse_energy_event(cluster, attribute, value)
+            if drv and val is not None:
+                self.setDriver(drv, val)
+                self.reportDrivers()
 
     def _apply_state(self):
         """Push the cached on/off + level state to both ST (on/off) and GV0 (%)."""
@@ -227,6 +390,20 @@ class MatterDimmer(MatterDevice):
     }
 
     drivers = [
-        {"driver": "ST", "value": 0, "uom": 25},
+        {"driver": "ST", "value": 0, "uom": 2},
         {"driver": "GV0", "value": 0, "uom": 51},
+    ]
+
+
+class MatterDimmerExt(MatterDimmer):
+    """Matter dimmer device with energy measurement capabilities."""
+    id = "matterdimmer_ext"
+
+    drivers = [
+        {"driver": "ST", "value": 0, "uom": 2},
+        {"driver": "GV0", "value": 0, "uom": 51},
+        {"driver": "CC", "value": 0, "uom": 73},
+        {"driver": "TPW", "value": 0, "uom": 33},
+        {"driver": "CV", "value": 0, "uom": 72},
+        {"driver": "CA", "value": 0, "uom": 1},
     ]
