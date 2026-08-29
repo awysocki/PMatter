@@ -1,6 +1,8 @@
 # Matter Container & Local Management CLI (`matt`)
 
-A lightweight local management suite and asynchronous Python CLI for controlling Matter devices via a local `python-matter-server` container running on Linux.
+A lightweight local management suite and asynchronous Python CLI for controlling Matter devices via a local Matter WebSocket server container running on Linux.
+
+This project is designed to work with Matter server implementations that expose the same client-facing WebSocket API, including `python-matter-server` and `matterjs-server`. The exact backend can vary, but the client expects the same basic node/event data model.
 
 ---
 
@@ -9,7 +11,9 @@ A lightweight local management suite and asynchronous Python CLI for controlling
 The Matter WebSocket daemon runs as a stateless, lightweight container inside Podman attached directly to the host network stack (required for IPv6 mDNS device discovery).
 
 * **Host System:** Enterprise Linux / RHEL 9 / Rocky Linux
-* **Container Image:** `ghcr.io/home-assistant-libs/python-matter-server:stable`
+* **Container Image:** `ghcr.io/matter-js/matterjs-server:latest`
+* **Container Name:** `matterjs-server`
+* **Persistent Volume:** `matterjs_data`
 * **Transport:** Native Host Networking (`--net=host`)
 * **WebSocket Endpoint:** `ws://localhost:5580/ws`
 * **Clients:** `matt` CLI & custom home automation node servers / bridges
@@ -35,15 +39,15 @@ The Matter WebSocket daemon runs as a stateless, lightweight container inside Po
     sudo systemctl enable --now podman-restart
 
     # 2. Create persistent volume for fabric keys & node state storage
-    podman volume create matter_data
+    podman volume create matterjs_data
 
-    # 3. Spin up the python-matter-server container
+    # 3. Spin up the MatterJS server container
     podman run -d \
-      --name matter-server \
+      --name matterjs-server \
       --net=host \
       --restart=always \
-      -v matter_data:/data \
-      ghcr.io/home-assistant-libs/python-matter-server:stable
+      -v matterjs_data:/data \
+      ghcr.io/matter-js/matterjs-server:latest
 
 The server listens locally on **`ws://localhost:5580/ws`**.
 
@@ -79,17 +83,22 @@ Matter **requires** IPv6 enabled on the host network interface:
   *Expected output:* `net.ipv6.conf.all.disable_ipv6 = 0`
 
 * **Verify Container Multicast Routing:**
-      podman exec -it matter-server ip -6 addr
+      podman exec -it matterjs-server ip -6 addr
 
 ---
 
 ## 4. Repository File Overview
 
 * **`matt`**: Main Bash CLI entry point wrapper.
-* **`matter_cli.py`**: Asynchronous Python engine communicating with `python-matter-server` over WebSockets.
+* **`matter_cli.py`**: Asynchronous Python engine communicating with `matterjs-server` over WebSockets.
+* **`raw.py`**: Minimal raw event listener that connects to the MatterJS WebSocket, subscribes to the live event stream, and prints any incoming JSON payloads so you can inspect server behavior and device events in real time.
 * **`testm.py`**: Interactive terminal debugging script with live event stream subscription (`attribute_updated` socket pushes).
 * **`requirements.txt`**: Python package dependencies for `matter_cli.py`.
 * **`install.sh`**: Installs the Python dependencies (via `pip --user`) needed to run the CLI.
+
+### Raw event debugging
+
+Use `raw.py` when you want to inspect the unfiltered messages coming from the MatterJS server. It opens the local WebSocket at `ws://localhost:5580/ws`, subscribes to `start_listening`, and prints each incoming event as formatted JSON. This is helpful for understanding the exact payloads emitted by the server when devices report state changes, are added, or otherwise update.
 
 ---
 
