@@ -243,10 +243,12 @@ class Controller(udi_interface.Node):
         cluster, attribute = parts[1], parts[2]
 
         if isinstance(node, MatterDimmer):
-            # OnOff and CurrentLevel arrive as separate events; re-query
-            # the node's full attribute set so ST reflects both together.
-            if (cluster == "6" and attribute == "0") or (cluster == "8" and attribute == "0"):
-                node.query()
+            # OnOff and CurrentLevel arrive as separate events. Update the
+            # node's cached state directly from the event data - do NOT
+            # call node.query()/get_nodes() here, since this callback runs
+            # on the Matter client's own background thread and a blocking
+            # send_command from that thread would deadlock until timeout.
+            node.on_attribute(cluster, attribute, value)
         elif cluster == "6" and attribute == "0":
             node.setDriver("ST", 1 if value else 0)
 

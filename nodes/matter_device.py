@@ -96,6 +96,15 @@ class MatterDimmer(MatterDevice):
 
     id = "matterdimmer"
 
+    def __init__(self, *args, **kwargs):
+        super(MatterDimmer, self).__init__(*args, **kwargs)
+        # Cached last-known on/off + level state, kept in sync from live
+        # push events so we never need a blocking network round trip
+        # (get_nodes) from the websocket's own background thread - doing
+        # so would deadlock that thread until the 10s command timeout.
+        self._last_onoff = None
+        self._last_level = None
+
     def query(self, command=None):
         nodes = self.matter.get_nodes()
         for matter_node in nodes:
@@ -104,8 +113,26 @@ class MatterDimmer(MatterDevice):
             attributes = matter_node.get("attributes", {}) or {}
             is_on = attributes.get(f"{self.endpoint_id}/6/0")
             level = attributes.get(f"{self.endpoint_id}/8/0")
+            self._last_onoff = is_on
+            self._last_level = level
             self.setDriver("ST", self._to_pct(is_on, level))
             break
+        self.reportDrivers()
+
+    def on_attribute(self, cluster, attribute, value):
+        """
+        Update cached on/off + level state directly from a live
+        'attribute_updated' push event, and refresh ST from the cache.
+        This is called from the Matter client's own background thread,
+        so it must NOT make any blocking send_command/get_nodes calls.
+        """
+        if cluster == "6" and attribute == "0":
+            self._last_onoff = value
+        elif cluster == "8" and attribute == "0":
+            self._last_level = value
+        else:
+            return
+        self.setDriver("ST", self._to_pct(self._last_onoff, self._last_level))
         self.reportDrivers()
 
     @staticmethod
@@ -128,6 +155,8 @@ class MatterDimmer(MatterDevice):
                 level_pct, self.node_id, self.endpoint_id, result,
             )
             return
+        self._last_onoff = level_pct > 0
+        self._last_level = round(level_pct * 254 / 100)
         self.setDriver("ST", level_pct)
 
     def cmd_dof(self, command=None):
@@ -138,6 +167,7 @@ class MatterDimmer(MatterDevice):
                 self.node_id, self.endpoint_id, result,
             )
             return
+        self._last_onoff = False
         self.setDriver("ST", 0)
 
     def cmd_fast_on(self, command=None):
@@ -149,6 +179,8 @@ class MatterDimmer(MatterDevice):
                 self.node_id, self.endpoint_id, result,
             )
             return
+        self._last_onoff = True
+        self._last_level = 254
         self.setDriver("ST", 100)
 
     def cmd_fast_off(self, command=None):
