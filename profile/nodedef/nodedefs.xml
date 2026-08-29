@@ -41,6 +41,10 @@
           <p id="" editor="pct" init="ST" />
         </cmd>
         <cmd id="DOF" />
+        <cmd id="DFON" />
+        <cmd id="DFOF" />
+        <cmd id="BRT" />
+        <cmd id="DIM" />
         <cmd id="TOGGLE" />
         <cmd id="QUERY" />
       </accepts>

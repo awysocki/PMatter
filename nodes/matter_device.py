@@ -12,6 +12,9 @@ def _command_succeeded(result):
     The python-matter-server 'device_command' response includes an
     'error_code' field. 0 (or absent) means success; any other value
     (e.g. 8 = UNSUPPORTED_ACCESS/failure) means the command was rejected.
+    A 'details' string is also populated on validation failures even when
+    error_code is 0 (e.g. a missing mandatory field), so treat any
+    non-empty details as a failure too.
     """
     if result is None:
         return False
@@ -19,6 +22,8 @@ def _command_succeeded(result):
         return False
     error_code = result.get("error_code")
     if error_code not in (None, 0):
+        return False
+    if result.get("details"):
         return False
     return True
 
@@ -135,9 +140,48 @@ class MatterDimmer(MatterDevice):
             return
         self.setDriver("ST", 0)
 
+    def cmd_fast_on(self, command=None):
+        """ISY 'Fast On' - jump straight to full brightness."""
+        result = self.matter.set_level(self.node_id, self.endpoint_id, 100)
+        if not _command_succeeded(result):
+            LOGGER.error(
+                "DFON command failed for node %s endpoint %s: %s",
+                self.node_id, self.endpoint_id, result,
+            )
+            return
+        self.setDriver("ST", 100)
+
+    def cmd_fast_off(self, command=None):
+        """ISY 'Fast Off' - same as a normal off for a Matter device."""
+        self.cmd_dof(command)
+
+    def cmd_brighten(self, command=None):
+        result = self.matter.step_level(self.node_id, self.endpoint_id, step_up=True)
+        if not _command_succeeded(result):
+            LOGGER.error(
+                "BRT command failed for node %s endpoint %s: %s",
+                self.node_id, self.endpoint_id, result,
+            )
+            return
+        self.query()
+
+    def cmd_dim(self, command=None):
+        result = self.matter.step_level(self.node_id, self.endpoint_id, step_up=False)
+        if not _command_succeeded(result):
+            LOGGER.error(
+                "DIM command failed for node %s endpoint %s: %s",
+                self.node_id, self.endpoint_id, result,
+            )
+            return
+        self.query()
+
     commands = {
         "DON": cmd_don,
         "DOF": cmd_dof,
+        "DFON": cmd_fast_on,
+        "DFOF": cmd_fast_off,
+        "BRT": cmd_brighten,
+        "DIM": cmd_dim,
         "TOGGLE": MatterDevice.cmd_toggle,
         "QUERY": query,
     }

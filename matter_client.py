@@ -238,6 +238,35 @@ class MatterClient:
                 "endpoint_id": endpoint_id,
                 "cluster_id": CLUSTER_LEVEL,
                 "command_name": "MoveToLevelWithOnOff",
-                "payload": {"level": matter_level, "transitionTime": 0},
+                "payload": {
+                    "level": matter_level,
+                    "transitionTime": 0,
+                    "optionsMask": 0,
+                    "optionsOverride": 0,
+                },
+            },
+        )
+
+    def step_level(self, node_id, endpoint_id, step_up, step_size_pct=10):
+        """
+        Step brightness up/down via the LevelControl cluster's Step
+        command (used for ISY Brighten/Dim). step_size_pct is expressed
+        as an ISY-style percentage of the 0-254 Matter level range.
+        """
+        step_size = max(1, round(step_size_pct * MATTER_LEVEL_MAX / 100))
+        return self.send_command(
+            "device_command",
+            {
+                "node_id": node_id,
+                "endpoint_id": endpoint_id,
+                "cluster_id": CLUSTER_LEVEL,
+                "command_name": "Step",
+                "payload": {
+                    "stepMode": 0 if step_up else 1,
+                    "stepSize": step_size,
+                    "transitionTime": 0,
+                    "optionsMask": 0,
+                    "optionsOverride": 0,
+                },
             },
         )
