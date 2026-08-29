@@ -5,4 +5,7 @@
   <editor id="pct">
     <range uom="51" subset="0-100" />
   </editor>
+  <editor id="onOff">
+    <range uom="78" subset="0-1" nls="ONOFF" />
+  </editor>
 </editors>

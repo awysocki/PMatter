@@ -115,16 +115,17 @@ class MatterDimmer(MatterDevice):
             level = attributes.get(f"{self.endpoint_id}/8/0")
             self._last_onoff = is_on
             self._last_level = level
-            self.setDriver("ST", self._to_pct(is_on, level))
+            self._apply_state()
             break
         self.reportDrivers()
 
     def on_attribute(self, cluster, attribute, value):
         """
         Update cached on/off + level state directly from a live
-        'attribute_updated' push event, and refresh ST from the cache.
-        This is called from the Matter client's own background thread,
-        so it must NOT make any blocking send_command/get_nodes calls.
+        'attribute_updated' push event, and refresh drivers from the
+        cache. This is called from the Matter client's own background
+        thread, so it must NOT make any blocking send_command/get_nodes
+        calls.
         """
         if cluster == "6" and attribute == "0":
             self._last_onoff = value
@@ -132,8 +133,13 @@ class MatterDimmer(MatterDevice):
             self._last_level = value
         else:
             return
-        self.setDriver("ST", self._to_pct(self._last_onoff, self._last_level))
+        self._apply_state()
         self.reportDrivers()
+
+    def _apply_state(self):
+        """Push the cached on/off + level state to both ST (%) and GV0 (bool)."""
+        self.setDriver("ST", self._to_pct(self._last_onoff, self._last_level))
+        self.setDriver("GV0", 1 if self._last_onoff else 0)
 
     @staticmethod
     def _to_pct(is_on, level):
@@ -157,7 +163,7 @@ class MatterDimmer(MatterDevice):
             return
         self._last_onoff = level_pct > 0
         self._last_level = round(level_pct * 254 / 100)
-        self.setDriver("ST", level_pct)
+        self._apply_state()
 
     def cmd_dof(self, command=None):
         result = self.matter.set_onoff(self.node_id, self.endpoint_id, False)
@@ -168,7 +174,7 @@ class MatterDimmer(MatterDevice):
             )
             return
         self._last_onoff = False
-        self.setDriver("ST", 0)
+        self._apply_state()
 
     def cmd_fast_on(self, command=None):
         """ISY 'Fast On' - jump straight to full brightness."""
@@ -181,7 +187,7 @@ class MatterDimmer(MatterDevice):
             return
         self._last_onoff = True
         self._last_level = 254
-        self.setDriver("ST", 100)
+        self._apply_state()
 
     def cmd_fast_off(self, command=None):
         """ISY 'Fast Off' - same as a normal off for a Matter device."""
@@ -195,7 +201,9 @@ class MatterDimmer(MatterDevice):
                 self.node_id, self.endpoint_id, result,
             )
             return
-        self.query()
+        # Don't query() here - it's a blocking get_nodes() round trip that
+        # races with (and duplicates) the live attribute_updated push event
+        # which already updates ST via on_attribute() moments later.
 
     def cmd_dim(self, command=None):
         result = self.matter.step_level(self.node_id, self.endpoint_id, step_up=False)
@@ -205,7 +213,7 @@ class MatterDimmer(MatterDevice):
                 self.node_id, self.endpoint_id, result,
             )
             return
-        self.query()
+        # See cmd_brighten - rely on the push event instead of querying.
 
     commands = {
         "DON": cmd_don,
@@ -218,4 +226,7 @@ class MatterDimmer(MatterDevice):
         "QUERY": query,
     }
 
-    drivers = [{"driver": "ST", "value": 0, "uom": 51}]
+    drivers = [
+        {"driver": "ST", "value": 0, "uom": 51},
+        {"driver": "GV0", "value": 0, "uom": 78},
+    ]

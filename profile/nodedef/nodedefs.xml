@@ -33,6 +33,7 @@
     <editors />
     <sts>
       <st id="ST" editor="pct" />
+      <st id="GV0" editor="onOff" />
     </sts>
     <cmds>
       <sends />

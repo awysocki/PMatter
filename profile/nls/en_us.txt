@@ -18,6 +18,10 @@ CMD-TOGGLE-NAME = Toggle
 ST-CTL-ST-NAME = Status
 ST-MD-ST-NAME = Status
 ST-MDIM-ST-NAME = Brightness
+GV0-MDIM-GV0-NAME = On / Off
 
 BOOL-0 = Off
 BOOL-1 = On
+
+ONOFF-0 = Off
+ONOFF-1 = On
