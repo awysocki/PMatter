@@ -28,4 +28,22 @@
       </accepts>
     </cmds>
   </nodeDef>
+
+  <nodeDef id="matterdimmer" nls="MDIM">
+    <editors />
+    <sts>
+      <st id="ST" editor="pct" />
+    </sts>
+    <cmds>
+      <sends />
+      <accepts>
+        <cmd id="DON">
+          <p id="" editor="pct" init="ST" />
+        </cmd>
+        <cmd id="DOF" />
+        <cmd id="TOGGLE" />
+        <cmd id="QUERY" />
+      </accepts>
+    </cmds>
+  </nodeDef>
 </nodeDefs>

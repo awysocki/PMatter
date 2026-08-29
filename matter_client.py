@@ -20,6 +20,12 @@ CLUSTER_ONOFF = 6
 ATTR_ONOFF = 0
 ONOFF_PATH_SUFFIX = "/6/0"
 
+# LevelControl cluster (dimming)
+CLUSTER_LEVEL = 8
+ATTR_CURRENT_LEVEL = 0
+LEVEL_PATH_SUFFIX = "/8/0"
+MATTER_LEVEL_MAX = 254  # Matter LevelControl range is 0-254
+
 
 class MatterClient:
     """
@@ -208,5 +214,30 @@ class MatterClient:
                 "cluster_id": CLUSTER_ONOFF,
                 "command_name": "Toggle",
                 "payload": {},
+            },
+        )
+
+    def set_level(self, node_id, endpoint_id, level_pct):
+        """
+        Set brightness via the LevelControl cluster's
+        MoveToLevelWithOnOff command (turns the device on/off as needed
+        and moves to the target level in one call).
+
+        level_pct: 0-100 (ISY-style percentage). 0 turns the device off.
+        """
+        level_pct = max(0, min(100, int(level_pct)))
+        matter_level = round(level_pct * MATTER_LEVEL_MAX / 100)
+
+        if level_pct <= 0:
+            return self.set_onoff(node_id, endpoint_id, False)
+
+        return self.send_command(
+            "device_command",
+            {
+                "node_id": node_id,
+                "endpoint_id": endpoint_id,
+                "cluster_id": CLUSTER_LEVEL,
+                "command_name": "MoveToLevelWithOnOff",
+                "payload": {"level": matter_level, "transitionTime": 0},
             },
         )

@@ -2,4 +2,7 @@
   <editor id="bool">
     <range uom="2" subset="0-1" nls="BOOL" />
   </editor>
+  <editor id="pct">
+    <range uom="51" subset="0-100" />
+  </editor>
 </editors>

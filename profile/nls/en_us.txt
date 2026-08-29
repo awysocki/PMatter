@@ -2,6 +2,8 @@ ND-controller-NAME = PMatter Controller
 ND-controller-ICON = GenericCtl
 ND-matterdevice-NAME = Matter Device
 ND-matterdevice-ICON = GenericRsp
+ND-matterdimmer-NAME = Matter Dimmer
+ND-matterdimmer-ICON = GenericRsp
 
 CMD-DISCOVER-NAME = Discover
 CMD-QUERY-NAME = Query
@@ -11,6 +13,7 @@ CMD-TOGGLE-NAME = Toggle
 
 ST-CTL-ST-NAME = Status
 ST-MD-ST-NAME = Status
+ST-MDIM-ST-NAME = Brightness
 
 BOOL-0 = Off
 BOOL-1 = On

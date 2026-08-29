@@ -5,12 +5,13 @@ PYTHON_ENGINE="${SCRIPT_DIR}/matter_cli.py"
 
 show_help() {
     echo "Matter CLI Tool Usage:"
-    echo "  matt add <code/QR>    - Pair a new device (e.g., matt add 34970112332)"
-    echo "  matt del <node_id>    - Unpair/remove a device (e.g., matt del 1)"
-    echo "  matt list             - List all paired Matter devices and states"
-    echo "  matt status <node_id> - Detailed metadata and state for a node"
-    echo "  matt on <node_id>     - Turn a switch ON"
-    echo "  matt off <node_id>    - Turn a switch OFF"
+    echo "  matt add <code/QR>       - Pair a new device (e.g., matt add 34970112332)"
+    echo "  matt del <node_id>       - Unpair/remove a device (e.g., matt del 1)"
+    echo "  matt list                - List all paired Matter devices and states"
+    echo "  matt status <node_id>    - Detailed metadata and state for a node"
+    echo "  matt features <node_id>  - List clusters/attributes (feature list) for a node"
+    echo "  matt on <node_id>        - Turn a switch ON"
+    echo "  matt off <node_id>       - Turn a switch OFF"
 }
 
 if [ $# -lt 1 ]; then
@@ -19,7 +20,7 @@ if [ $# -lt 1 ]; then
 fi
 
 case "$1" in
-    add|commission|del|delete|remove|list|ls|status|info|on|off)
+    add|commission|del|delete|remove|list|ls|status|info|features|feature|caps|capabilities|on|off)
         python3 "${PYTHON_ENGINE}" "$@"
         ;;
     -h|--help|help)

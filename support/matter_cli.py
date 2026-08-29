@@ -122,6 +122,106 @@ async def cmd_status(node_id):
   print(f"  Switch State: {state_str}\n")
 
 
+CLUSTER_NAMES = {
+    3: "Identify",
+    4: "Groups",
+    6: "OnOff",
+    8: "LevelControl",
+    29: "Descriptor",
+    30: "Binding",
+    31: "AccessControl",
+    40: "BasicInformation",
+    41: "OTASoftwareUpdateProvider",
+    42: "OTASoftwareUpdateRequestor",
+    48: "GeneralCommissioning",
+    49: "NetworkCommissioning",
+    50: "DiagnosticLogs",
+    51: "GeneralDiagnostics",
+    52: "SoftwareDiagnostics",
+    53: "ThreadNetworkDiagnostics",
+    54: "WiFiNetworkDiagnostics",
+    55: "EthernetNetworkDiagnostics",
+    60: "AdministratorCommissioning",
+    62: "NodeOperationalCredentials",
+    63: "GroupKeyManagement",
+    64: "FixedLabel",
+    65: "UserLabel",
+    69: "ProxyConfiguration",
+    70: "ProxyDiscovery",
+    71: "ProxyValid",
+    80: "BooleanState",
+    257: "DoorLock",
+    258: "WindowCovering",
+    513: "Thermostat",
+    514: "FanControl",
+    768: "ColorControl",
+    1024: "IlluminanceMeasurement",
+    1026: "TemperatureMeasurement",
+    1029: "RelativeHumidityMeasurement",
+    1030: "OccupancySensing",
+}
+
+GLOBAL_ATTR_NAMES = {
+    65528: "GeneratedCommandList",
+    65529: "AcceptedCommandList",
+    65531: "AttributeList",
+    65532: "FeatureMap",
+    65533: "ClusterRevision",
+}
+
+
+async def cmd_features(node_id):
+  try:
+    node_num = int(node_id)
+  except ValueError:
+    print("[FAIL] Error: Node ID must be a number.")
+    return
+
+  payload = {"message_id": "req_features", "command": "get_nodes"}
+  res = await send_command(payload)
+
+  nodes = res.get("result", [])
+  target = next((n for n in nodes if n.get("node_id") == node_num), None)
+
+  if not target:
+    print(f"[FAIL] Node ID {node_num} not found on server.")
+    return
+
+  attrs = target.get("attributes", {}) or {}
+
+  # Group attribute keys "<endpoint>/<cluster>/<attribute>" by endpoint/cluster.
+  endpoints = {}
+  for key, value in attrs.items():
+    parts = key.split("/")
+    if len(parts) != 3:
+      continue
+    ep, cluster, attr = parts
+    ep = int(ep)
+    cluster = int(cluster)
+    attr = int(attr)
+    endpoints.setdefault(ep, {}).setdefault(cluster, {})[attr] = value
+
+  print(f"\n--- Node {node_num} Feature List ---")
+  for ep in sorted(endpoints):
+    print(f"\nEndpoint {ep}:")
+    for cluster in sorted(endpoints[ep]):
+      cluster_name = CLUSTER_NAMES.get(cluster, f"Cluster 0x{cluster:04X}")
+      print(f"  [{cluster}] {cluster_name}")
+
+      cluster_attrs = endpoints[ep][cluster]
+      feature_map = cluster_attrs.get(65532)
+      if feature_map is not None:
+        print(f"    FeatureMap: {feature_map} (0b{feature_map:b})")
+
+      for attr in sorted(cluster_attrs):
+        if attr == 65532:
+          continue  # already printed above
+        attr_name = GLOBAL_ATTR_NAMES.get(attr, f"attr {attr}")
+        value = cluster_attrs[attr]
+        print(f"    {attr_name} ({attr}): {value}")
+  print()
+
+
 async def cmd_toggle(node_id, action):
   try:
     node_num = int(node_id)
@@ -169,6 +269,12 @@ def main():
       print("Error: Missing node ID.")
       sys.exit(1)
     asyncio.run(cmd_status(sys.argv[2]))
+
+  elif action in ["features", "feature", "caps", "capabilities"]:
+    if len(sys.argv) < 3:
+      print("Error: Missing node ID.")
+      sys.exit(1)
+    asyncio.run(cmd_features(sys.argv[2]))
 
   elif action in ["on", "off"]:
     if len(sys.argv) < 3:

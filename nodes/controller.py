@@ -11,7 +11,7 @@ Handles:
 import udi_interface
 
 from matter_client import MatterClient
-from nodes.matter_device import MatterDevice
+from nodes.matter_device import MatterDevice, MatterDimmer
 
 LOGGER = udi_interface.LOGGER
 Custom = udi_interface.Custom
@@ -141,8 +141,9 @@ class Controller(udi_interface.Node):
 
     def add_device_nodes(self, matter_node):
         """
-        Create a MatterDevice ISY node for each on/off-capable endpoint
-        found on a Matter node.
+        Create a MatterDevice (or MatterDimmer, if the endpoint also
+        supports the LevelControl cluster) ISY node for each on/off
+        capable endpoint found on a Matter node.
         """
         node_id = matter_node.get("node_id")
         attributes = matter_node.get("attributes", {}) or {}
@@ -152,14 +153,21 @@ class Controller(udi_interface.Node):
 
         # Attribute keys look like "<endpoint>/<cluster>/<attribute>",
         # e.g. "1/6/0" is endpoint 1, OnOff cluster, OnOff attribute.
+        # "1/8/0" is endpoint 1, LevelControl cluster, CurrentLevel attribute.
         endpoints_with_onoff = set()
+        endpoints_with_level = set()
         for attr_path in attributes.keys():
             parts = attr_path.split("/")
-            if len(parts) == 3 and parts[1] == "6":
-                try:
-                    endpoints_with_onoff.add(int(parts[0]))
-                except ValueError:
-                    continue
+            if len(parts) != 3:
+                continue
+            try:
+                endpoint = int(parts[0])
+            except ValueError:
+                continue
+            if parts[1] == "6":
+                endpoints_with_onoff.add(endpoint)
+            elif parts[1] == "8":
+                endpoints_with_level.add(endpoint)
 
         if not endpoints_with_onoff:
             LOGGER.debug("Matter node %s has no on/off endpoints, skipping", node_id)
@@ -172,23 +180,40 @@ class Controller(udi_interface.Node):
                 continue
 
             name = self._device_name(matter_node, node_id, endpoint_id)
+            is_dimmer = endpoint_id in endpoints_with_level
             onoff_path = f"{endpoint_id}/6/0"
-            initial_state = 1 if attributes.get(onoff_path) else 0
+            is_on = attributes.get(onoff_path)
 
-            device = MatterDevice(
-                self.poly,
-                self.address,
-                address,
-                name,
-                self.matter,
-                node_id,
-                endpoint_id,
-            )
+            if is_dimmer:
+                level = attributes.get(f"{endpoint_id}/8/0")
+                initial_state = MatterDimmer._to_pct(is_on, level)
+                device = MatterDimmer(
+                    self.poly,
+                    self.address,
+                    address,
+                    name,
+                    self.matter,
+                    node_id,
+                    endpoint_id,
+                )
+            else:
+                initial_state = 1 if is_on else 0
+                device = MatterDevice(
+                    self.poly,
+                    self.address,
+                    address,
+                    name,
+                    self.matter,
+                    node_id,
+                    endpoint_id,
+                )
+
             self.poly.addNode(device)
             device.setDriver("ST", initial_state)
             self.node_address_map[node_id] = address
             LOGGER.info(
-                "Added Matter device node '%s' (node %s endpoint %s)",
+                "Added Matter %s node '%s' (node %s endpoint %s)",
+                "dimmer" if is_dimmer else "device",
                 name,
                 node_id,
                 endpoint_id,
@@ -213,7 +238,16 @@ class Controller(udi_interface.Node):
             return
 
         parts = attr_path.split("/")
-        if len(parts) == 3 and parts[1] == "6" and parts[2] == "0":
+        if len(parts) != 3:
+            return
+        cluster, attribute = parts[1], parts[2]
+
+        if isinstance(node, MatterDimmer):
+            # OnOff and CurrentLevel arrive as separate events; re-query
+            # the node's full attribute set so ST reflects both together.
+            if (cluster == "6" and attribute == "0") or (cluster == "8" and attribute == "0"):
+                node.query()
+        elif cluster == "6" and attribute == "0":
             node.setDriver("ST", 1 if value else 0)
 
     def handle_node_removed(self, node_id):
