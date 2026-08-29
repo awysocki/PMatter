@@ -5,7 +5,7 @@
   "executable": "pmatter.py",
   "install": "install.sh",
   "description": "Matter node server. Connects to a python-matter-server instance over its websocket API, discovers paired Matter devices, and creates ISY nodes for each on/off endpoint.",
-  "notice": "The IP address and port of your python-matter-server instance are required in the configuration page.",
+  "notice": "Enter the IP address of your python-matter-server instance. The port defaults to 5580 and can be changed if needed.",
   "shortPoll": "60",
   "longPoll": "600",
   "testMode": false,

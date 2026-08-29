@@ -34,7 +34,8 @@ and set:
 
 - **host** - IP address of the machine running the upstream Matter
   WebSocket server (e.g. `192.168.2.88`)
-- **port** - WebSocket port of the upstream Matter server (default `5580`)
+- **port** - WebSocket port of the upstream Matter server (optional; defaults
+  to `5580`)
 
 After saving, the node server connects to the already-running upstream
 Matter server, subscribes to live events, and runs discovery

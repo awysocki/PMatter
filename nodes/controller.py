@@ -33,7 +33,8 @@ class Controller(udi_interface.Node):
         {
             "name": "port",
             "title": "Matter Server Port",
-            "isRequired": True,
+            "isRequired": False,
+            "default": "5580",
         },
     ]
 
