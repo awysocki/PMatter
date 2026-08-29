@@ -6,8 +6,8 @@
   "install": "install.sh",
   "description": "Matter node server. Connects to a python-matter-server instance over its websocket API, discovers paired Matter devices, and creates ISY nodes for each on/off endpoint.",
   "notice": "The IP address and port of your python-matter-server instance are required in the configuration page.",
-  "shortPoll": "30",
-  "longPoll": "60",
+  "shortPoll": "60",
+  "longPoll": "600",
   "testMode": false,
   "logLevel": "INFO",
   "profile_version": "3.0.0",
@@ -15,15 +15,15 @@
   "credits": [
     {
       "title": "PMatter: a NodeServer for python-matter-server Integration",
-      "author": "",
+      "author": "Andy Wysocki",
       "version": "2026.8.5",
-      "date": "",
+      "date": "2026-08-29",
       "source": "",
-      "license": ""
+      "license": "mit"
     }
   ],
   "store": {
-    "developer": "",
+    "developer": "Andy Wysocki",
     "purchaseOptions": [
       {
         "isPerpetual": true,
