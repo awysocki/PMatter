@@ -199,7 +199,7 @@ class Controller(udi_interface.Node):
             value = matter_node.get(key)
             if value:
                 return f"{value} {endpoint_id}" if endpoint_id != 1 else value
-        return f"Matter Node {node_id}-{endpoint_id}"
+        return f"MNode {node_id}-{endpoint_id}"
 
     def handle_attribute_update(self, node_id, attr_path, value):
         """Called from the MatterClient background thread."""
