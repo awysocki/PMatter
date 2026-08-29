@@ -10,13 +10,13 @@
   "longPoll": "600",
   "testMode": false,
   "logLevel": "INFO",
-  "profile_version": "3.3.1",
-  "version": "2026.8.13",
+  "profile_version": "3.3.2",
+  "version": "2026.8.14",
   "credits": [
     {
       "title": "PMatter: a NodeServer for python-matter-server Integration",
       "author": "Andy Wysocki",
-      "version": "2026.8.13",
+      "version": "2026.8.14",
       "date": "2026-08-29",
       "source": "",
       "license": "mit"
