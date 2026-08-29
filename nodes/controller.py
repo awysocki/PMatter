@@ -186,7 +186,8 @@ class Controller(udi_interface.Node):
 
             if is_dimmer:
                 level = attributes.get(f"{endpoint_id}/8/0")
-                initial_state = MatterDimmer._to_pct(is_on, level)
+                initial_state = 1 if is_on else 0
+                initial_pct = MatterDimmer._to_pct(is_on, level)
                 device = MatterDimmer(
                     self.poly,
                     self.address,
@@ -213,7 +214,7 @@ class Controller(udi_interface.Node):
             self.poly.addNode(device)
             device.setDriver("ST", initial_state)
             if is_dimmer:
-                device.setDriver("GV0", 1 if is_on else 0)
+                device.setDriver("GV0", initial_pct)
             self.node_address_map[node_id] = address
             LOGGER.info(
                 "Added Matter %s node '%s' (node %s endpoint %s)",

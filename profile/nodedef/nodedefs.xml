@@ -16,7 +16,7 @@
   <nodeDef id="matterdevice" nls="MD">
     <editors />
     <sts>
-      <st id="ST" editor="bool" />
+      <st id="ST" editor="onOff" />
     </sts>
     <cmds>
       <sends />
@@ -32,14 +32,14 @@
   <nodeDef id="matterdimmer" nls="MDIM">
     <editors />
     <sts>
-      <st id="ST" editor="pct" />
-      <st id="GV0" editor="onOff" />
+      <st id="ST" editor="onOff" />
+      <st id="GV0" editor="pct" />
     </sts>
     <cmds>
       <sends />
       <accepts>
         <cmd id="DON">
-          <p id="" editor="pct" init="ST" />
+          <p id="" editor="pct" init="GV0" />
         </cmd>
         <cmd id="DOF" />
         <cmd id="DFON" />

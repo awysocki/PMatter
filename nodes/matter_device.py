@@ -83,15 +83,15 @@ class MatterDevice(udi_interface.Node):
         "QUERY": query,
     }
 
-    drivers = [{"driver": "ST", "value": 0, "uom": 2}]
+    drivers = [{"driver": "ST", "value": 0, "uom": 25}]
 
 
 class MatterDimmer(MatterDevice):
     """
     ISY node for a Matter device that supports the LevelControl cluster
-    (dimming), e.g. a dimmable light or plug. ST is reported as a
-    percentage (UOM 51) instead of the plain boolean on/off (UOM 2)
-    used by MatterDevice.
+    (dimming), e.g. a dimmable light or plug. ST is the plain on/off
+    status (UOM 25), matching MatterDevice; GV0 carries the brightness
+    percentage (UOM 51).
     """
 
     id = "matterdimmer"
@@ -137,9 +137,9 @@ class MatterDimmer(MatterDevice):
         self.reportDrivers()
 
     def _apply_state(self):
-        """Push the cached on/off + level state to both ST (%) and GV0 (bool)."""
-        self.setDriver("ST", self._to_pct(self._last_onoff, self._last_level))
-        self.setDriver("GV0", 1 if self._last_onoff else 0)
+        """Push the cached on/off + level state to both ST (on/off) and GV0 (%)."""
+        self.setDriver("ST", 1 if self._last_onoff else 0)
+        self.setDriver("GV0", self._to_pct(self._last_onoff, self._last_level))
 
     @staticmethod
     def _to_pct(is_on, level):
@@ -227,6 +227,6 @@ class MatterDimmer(MatterDevice):
     }
 
     drivers = [
-        {"driver": "ST", "value": 0, "uom": 51},
-        {"driver": "GV0", "value": 0, "uom": 25},
+        {"driver": "ST", "value": 0, "uom": 25},
+        {"driver": "GV0", "value": 0, "uom": 51},
     ]
