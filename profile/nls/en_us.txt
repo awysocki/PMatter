@@ -1,13 +1,13 @@
 ND-controller-NAME = PMatter Controller
 ND-controller-ICON = GenericCtl
 ND-matterdevice-NAME = Matter Device
-ND-matterdevice-ICON = GenericRsp
+ND-matterdevice-ICON = SwitchLincRelay
 ND-matterdevice_ext-NAME = Matter Device (Energy)
-ND-matterdevice_ext-ICON = GenericRsp
+ND-matterdevice_ext-ICON = SwitchLincRelay
 ND-matterdimmer-NAME = Matter Dimmer
-ND-matterdimmer-ICON = GenericRsp
+ND-matterdimmer-ICON = SwitchLincDimmer
 ND-matterdimmer_ext-NAME = Matter Dimmer (Energy)
-ND-matterdimmer_ext-ICON = GenericRsp
+ND-matterdimmer_ext-ICON = SwitchLincDimmer
 
 CMD-DISCOVER-NAME = Discover
 CMD-QUERY-NAME = Query
