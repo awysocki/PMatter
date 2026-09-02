@@ -25,6 +25,8 @@ CLUSTER_LEVEL = 8
 ATTR_CURRENT_LEVEL = 0
 LEVEL_PATH_SUFFIX = "/8/0"
 MATTER_LEVEL_MAX = 254  # Matter LevelControl range is 0-254
+RECONNECT_DELAY_INITIAL = 2
+RECONNECT_DELAY_MAX = 60
 
 
 class MatterClient:
@@ -57,6 +59,10 @@ class MatterClient:
     # ------------------------------------------------------------------
     def start(self):
         """Start the background event loop thread and connect."""
+        if self._thread is not None and self._thread.is_alive():
+            return self._connected.is_set()
+        self._stop.clear()
+        self._connected.clear()
         self._thread = threading.Thread(target=self._run_loop, daemon=True)
         self._thread.start()
         connected = self._connected.wait(timeout=15)
@@ -67,7 +73,10 @@ class MatterClient:
     def stop(self):
         self._stop.set()
         if self._loop and self._loop.is_running():
-            asyncio.run_coroutine_threadsafe(self._close(), self._loop)
+            try:
+                asyncio.run_coroutine_threadsafe(self._close(), self._loop)
+            except RuntimeError:
+                pass
         if self._thread:
             self._thread.join(timeout=5)
 
@@ -80,30 +89,62 @@ class MatterClient:
             LOGGER.error("Matter client loop terminated: %s", e)
         finally:
             self._connected.clear()
+            self._ws = None
+            self._fail_pending()
+            self._loop.close()
+            self._loop = None
 
     async def _close(self):
         if self._ws is not None:
             await self._ws.close()
 
     async def _main(self):
-        LOGGER.info("Connecting to Matter Server at %s ...", self.uri)
-        async with websockets.connect(self.uri, max_size=None) as ws:
-            self._ws = ws
-            # Read initial server handshake payload
-            await ws.recv()
+        reconnect_delay = RECONNECT_DELAY_INITIAL
+        while not self._stop.is_set():
+            try:
+                LOGGER.info("Connecting to Matter Server at %s ...", self.uri)
+                async with websockets.connect(self.uri, max_size=None) as ws:
+                    self._ws = ws
+                    # Read initial server handshake payload
+                    await ws.recv()
 
-            # Subscribe to live attribute update events across the fabric
-            await ws.send(
-                json.dumps({"message_id": "sub_1", "command": "start_listening"})
-            )
+                    # Subscribe to live attribute update events across the fabric
+                    await ws.send(
+                        json.dumps({"message_id": "sub_1", "command": "start_listening"})
+                    )
 
-            self._connected.set()
-            LOGGER.info("Connected to Matter server, subscribed to events.")
+                    self._connected.set()
+                    reconnect_delay = RECONNECT_DELAY_INITIAL
+                    LOGGER.info("Connected to Matter server, subscribed to events.")
 
-            async for message in ws:
-                if self._stop.is_set():
-                    break
-                self._handle_message(message)
+                    async for message in ws:
+                        if self._stop.is_set():
+                            break
+                        self._handle_message(message)
+
+                if not self._stop.is_set():
+                    LOGGER.warning("Matter server websocket closed; reconnecting")
+            except Exception as e:
+                if not self._stop.is_set():
+                    LOGGER.warning("Matter server connection lost: %s", e)
+            finally:
+                self._connected.clear()
+                self._ws = None
+                self._fail_pending()
+
+            if not self._stop.is_set():
+                LOGGER.info("Retrying Matter server connection in %s seconds", reconnect_delay)
+                await asyncio.sleep(reconnect_delay)
+                reconnect_delay = min(reconnect_delay * 2, RECONNECT_DELAY_MAX)
+
+    def _fail_pending(self):
+        """Release callers waiting for responses from a disconnected session."""
+        with self._pending_lock:
+            pending = list(self._pending.values())
+            self._pending.clear()
+        for fut in pending:
+            if not fut.done():
+                fut.set_result(None)
 
     # ------------------------------------------------------------------
     # Message handling
@@ -155,8 +196,12 @@ class MatterClient:
         thread) until the response arrives or the timeout expires.
         Returns the parsed response dict, or None on failure/timeout.
         """
-        if self._loop is None or not self._loop.is_running():
-            LOGGER.error("Matter client loop is not running")
+        if (
+            self._loop is None
+            or not self._loop.is_running()
+            or not self._connected.is_set()
+        ):
+            LOGGER.error("Matter client is not connected")
             return None
 
         message_id = f"cmd_{next(self._msg_counter)}"
@@ -177,10 +222,17 @@ class MatterClient:
             return None
 
     async def _send_and_wait(self, message_id, payload):
+        if self._ws is None:
+            return None
         fut = self._loop.create_future()
         with self._pending_lock:
             self._pending[message_id] = fut
-        await self._ws.send(json.dumps(payload))
+        try:
+            await self._ws.send(json.dumps(payload))
+        except Exception:
+            with self._pending_lock:
+                self._pending.pop(message_id, None)
+            raise
         return await fut
 
     # ------------------------------------------------------------------
