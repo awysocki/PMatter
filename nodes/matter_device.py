@@ -168,6 +168,15 @@ class MatterDevice(udi_interface.Node):
         self.matter = matter_client
         self.node_id = node_id
         self.endpoint_id = endpoint_id
+        self._live_driver_values = {}
+
+    def _set_live_driver(self, driver, value):
+        """Set and report a live driver only when its value changes."""
+        if self._live_driver_values.get(driver) == value:
+            return False
+        self._live_driver_values[driver] = value
+        self.setDriver(driver, value)
+        return True
 
     def start(self):
         self.query()
@@ -189,13 +198,11 @@ class MatterDevice(udi_interface.Node):
 
     def on_attribute(self, cluster, attribute, value):
         if cluster == "6" and attribute == "0":
-            self.setDriver("ST", 1 if value else 0)
-            self.reportDrivers()
+            self._set_live_driver("ST", 1 if value else 0)
         else:
             drv, val = _parse_energy_event(cluster, attribute, value)
             if drv and val is not None:
-                self.setDriver(drv, val)
-                self.reportDrivers()
+                self._set_live_driver(drv, val)
 
     def cmd_don(self, command=None):
         result = self.matter.set_onoff(self.node_id, self.endpoint_id, True)
@@ -288,21 +295,21 @@ class MatterDimmer(MatterDevice):
         if cluster == "6" and attribute == "0":
             self._last_onoff = value
             self._apply_state()
-            self.reportDrivers()
         elif cluster == "8" and attribute == "0":
             self._last_level = value
             self._apply_state()
-            self.reportDrivers()
         else:
             drv, val = _parse_energy_event(cluster, attribute, value)
             if drv and val is not None:
-                self.setDriver(drv, val)
-                self.reportDrivers()
+                self._set_live_driver(drv, val)
 
     def _apply_state(self):
         """Push the cached on/off + level state to both ST (on/off) and GV0 (%)."""
-        self.setDriver("ST", 1 if self._last_onoff else 0)
-        self.setDriver("GV0", self._to_pct(self._last_onoff, self._last_level))
+        changed = self._set_live_driver("ST", 1 if self._last_onoff else 0)
+        changed |= self._set_live_driver(
+            "GV0", self._to_pct(self._last_onoff, self._last_level)
+        )
+        return changed
 
     @staticmethod
     def _to_pct(is_on, level):
@@ -409,21 +416,21 @@ class MatterDimmerExt(MatterDimmer):
     ]
 
 
-class MatterButton(udi_interface.Node):
+class MatterButton(MatterDevice):
     """ISY node for a Matter Switch-cluster button endpoint."""
 
     id = "matterbutton"
     drivers = [
         {"driver": "ST", "value": 0, "uom": 2},
-        {"driver": "GV0", "value": 0, "uom": 25},
+        {"driver": "GV0", "value": 0, "uom": 2},
+        {"driver": "GV1", "value": 0, "uom": 25},
     ]
 
     def __init__(self, polyglot, primary, address, name, matter_client,
                  node_id, endpoint_id):
-        super(MatterButton, self).__init__(polyglot, primary, address, name)
-        self.matter = matter_client
-        self.node_id = node_id
-        self.endpoint_id = endpoint_id
+        super(MatterButton, self).__init__(
+            polyglot, primary, address, name, matter_client, node_id, endpoint_id
+        )
 
     def query(self, command=None):
         self.reportDrivers()
@@ -435,11 +442,17 @@ class MatterButton(udi_interface.Node):
             action = int(event_id)
         except (TypeError, ValueError):
             return
-        self.setDriver("GV0", action)
-        self.setDriver("ST", 1)
-        self.reportDrivers()
-        self.setDriver("ST", 0)
-        self.reportDrivers()
+
+        self._set_live_driver("GV1", action)
+        if action in (0, 1, 4):
+            pressed = 1
+        elif action in (2, 3, 5):
+            pressed = 0
+        else:
+            return
+
+        self._set_live_driver("GV0", pressed)
+        self._set_live_driver("ST", pressed)
 
     def on_attribute(self, cluster, attribute, value):
         # Some Matter bridges surface Switch actions as attribute updates.

@@ -42,7 +42,8 @@ ST-MDIM_EXT-CV-NAME = Voltage
 ST-MDIM_EXT-CA-NAME = Current
 
 ST-MBTN-ST-NAME = Pressed
-ST-MBTN-GV0-NAME = Action
+ST-MBTN-GV0-NAME = Pressed
+ST-MBTN-GV1-NAME = Action
 
 BOOL-0 = Off
 BOOL-1 = On
