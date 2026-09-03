@@ -293,28 +293,50 @@ class Controller(udi_interface.Node):
             # send_command from that thread would deadlock until timeout.
             node.on_attribute(cluster, attribute, value)
 
-    def handle_event_update(self, event_data):
-        """Route a python-matter-server event update to its endpoint node."""
-        if not isinstance(event_data, (list, tuple)) or len(event_data) < 3:
-            return
-        node_id = event_data[0]
-        if isinstance(event_data[1], str):
-            parts = event_data[1].split("/")
-            if len(parts) != 3:
+    def handle_event_update(self, event_data, event_type=None):
+        """Route a Matter Switch event to the corresponding endpoint node."""
+        LOGGER.info("Matter %s data: %s", event_type or "event", event_data)
+        if isinstance(event_data, dict):
+            node_id = event_data.get("node_id")
+            endpoint_id = event_data.get("endpoint_id")
+            cluster = event_data.get("cluster_id")
+            event_id = event_data.get("event_id")
+            value = event_data.get("event_data")
+            if value is None:
+                value = event_data.get("value")
+        elif isinstance(event_data, (list, tuple)):
+            if len(event_data) < 3:
+                LOGGER.warning("Ignoring malformed Matter event data: %s", event_data)
                 return
-            endpoint_id, cluster, event_id = parts
-            value = event_data[2]
+            node_id = event_data[0]
+            if isinstance(event_data[1], str) and "/" in event_data[1]:
+                parts = event_data[1].split("/")
+                if len(parts) != 3:
+                    LOGGER.warning("Ignoring Matter event with invalid path: %s", event_data)
+                    return
+                endpoint_id, cluster, event_id = parts
+                value = event_data[2]
+            else:
+                if len(event_data) < 4:
+                    LOGGER.warning("Ignoring short Matter event data: %s", event_data)
+                    return
+                endpoint_id, cluster, event_id = event_data[1:4]
+                value = event_data[4] if len(event_data) > 4 else None
         else:
-            if len(event_data) < 4:
-                return
-            endpoint_id, cluster, event_id = event_data[1:4]
-            value = event_data[7] if len(event_data) > 7 else None
+            LOGGER.warning("Ignoring malformed Matter event data: %s", event_data)
+            return
         try:
+            node_id = int(node_id)
             endpoint_id = int(endpoint_id)
         except (TypeError, ValueError):
+            LOGGER.warning("Ignoring Matter event with invalid endpoint: %s", event_data)
             return
         address = self.node_address_map.get((node_id, endpoint_id))
         if address is None:
+            LOGGER.warning(
+                "No ISY node mapped for Matter event node %s endpoint %s: %s",
+                node_id, endpoint_id, event_data,
+            )
             return
         node = self.poly.getNode(address)
         if node is not None and hasattr(node, "on_event"):

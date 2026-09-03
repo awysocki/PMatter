@@ -160,6 +160,9 @@ class MatterClient:
 
         event_type = data.get("event")
 
+        if event_type not in ("attribute_updated", "node_removed"):
+            LOGGER.info("Matter server event: %s", data)
+
         # Live push updates (app / wall button toggles, etc.)
         if event_type == "attribute_updated":
             evt_data = data.get("data", [])
@@ -172,11 +175,11 @@ class MatterClient:
                         LOGGER.error("Error in attribute update callback: %s", e)
             return
 
-        if event_type == "event_updated":
+        if event_type in ("event_updated", "event_occurred", "event_report"):
             evt_data = data.get("data", [])
             if self.on_event_update:
                 try:
-                    self.on_event_update(evt_data)
+                    self.on_event_update(evt_data, event_type)
                 except Exception as e:
                     LOGGER.error("Error in event update callback: %s", e)
             return
