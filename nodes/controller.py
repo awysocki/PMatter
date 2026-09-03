@@ -16,6 +16,7 @@ from nodes.matter_device import (
     MatterDeviceExt,
     MatterDimmer,
     MatterDimmerExt,
+    MatterButton,
     parse_energy_attributes,
 )
 
@@ -50,7 +51,7 @@ class Controller(udi_interface.Node):
         self.host = None
         self.port = None
         self.matter = None
-        # node_id (int) -> ISY address (str) map, used to route live events
+        # (node_id, endpoint_id) -> ISY address map, used to route live events
         self.node_address_map = {}
 
         self.Notices = Custom(polyglot, "notices")
@@ -119,6 +120,7 @@ class Controller(udi_interface.Node):
             self.host,
             self.port,
             on_attribute_update=self.handle_attribute_update,
+            on_event_update=self.handle_event_update,
             on_node_removed=self.handle_node_removed,
         )
 
@@ -162,6 +164,7 @@ class Controller(udi_interface.Node):
         # "1/8/0" is endpoint 1, LevelControl cluster, CurrentLevel attribute.
         endpoints_with_onoff = set()
         endpoints_with_level = set()
+        endpoints_with_switch = set()
         for attr_path in attributes.keys():
             parts = attr_path.split("/")
             if len(parts) != 3:
@@ -174,15 +177,34 @@ class Controller(udi_interface.Node):
                 endpoints_with_onoff.add(endpoint)
             elif parts[1] == "8":
                 endpoints_with_level.add(endpoint)
+            elif parts[1] == "59":
+                endpoints_with_switch.add(endpoint)
 
-        if not endpoints_with_onoff:
-            LOGGER.debug("Matter node %s has no on/off endpoints, skipping", node_id)
+        if not endpoints_with_onoff and not endpoints_with_switch:
+            LOGGER.debug("Matter node %s has no supported endpoints, skipping", node_id)
             return
+
+        for endpoint_id in sorted(endpoints_with_switch):
+            address = f"mn{node_id}e{endpoint_id}"
+            if address in self.poly.nodes():
+                self.node_address_map[(node_id, endpoint_id)] = address
+                continue
+            name = self._device_name(matter_node, node_id, endpoint_id)
+            device = MatterButton(
+                self.poly, self.address, address, name, self.matter,
+                node_id, endpoint_id,
+            )
+            self.poly.addNode(device)
+            self.node_address_map[(node_id, endpoint_id)] = address
+            LOGGER.info(
+                "Added Matter button node '%s' (node %s endpoint %s)",
+                name, node_id, endpoint_id,
+            )
 
         for endpoint_id in sorted(endpoints_with_onoff):
             address = f"mn{node_id}e{endpoint_id}"
             if address in self.poly.nodes():
-                self.node_address_map[node_id] = address
+                self.node_address_map[(node_id, endpoint_id)] = address
                 continue
 
             name = self._device_name(matter_node, node_id, endpoint_id)
@@ -228,7 +250,7 @@ class Controller(udi_interface.Node):
             for drv, val in energy_data.items():
                 if val is not None:
                     device.setDriver(drv, val)
-            self.node_address_map[node_id] = address
+            self.node_address_map[(node_id, endpoint_id)] = address
             LOGGER.info(
                 "Added Matter %s node '%s' (node %s endpoint %s)",
                 "dimmer" if is_dimmer else "device",
@@ -247,7 +269,14 @@ class Controller(udi_interface.Node):
 
     def handle_attribute_update(self, node_id, attr_path, value):
         """Called from the MatterClient background thread."""
-        address = self.node_address_map.get(node_id)
+        parts = attr_path.split("/")
+        if len(parts) != 3:
+            return
+        try:
+            endpoint_id = int(parts[0])
+        except ValueError:
+            return
+        address = self.node_address_map.get((node_id, endpoint_id))
         if address is None:
             return
 
@@ -255,9 +284,6 @@ class Controller(udi_interface.Node):
         if node is None:
             return
 
-        parts = attr_path.split("/")
-        if len(parts) != 3:
-            return
         cluster, attribute = parts[1], parts[2]
 
         if hasattr(node, "on_attribute"):
@@ -267,9 +293,40 @@ class Controller(udi_interface.Node):
             # send_command from that thread would deadlock until timeout.
             node.on_attribute(cluster, attribute, value)
 
+    def handle_event_update(self, event_data):
+        """Route a python-matter-server event update to its endpoint node."""
+        if not isinstance(event_data, (list, tuple)) or len(event_data) < 3:
+            return
+        node_id = event_data[0]
+        if isinstance(event_data[1], str):
+            parts = event_data[1].split("/")
+            if len(parts) != 3:
+                return
+            endpoint_id, cluster, event_id = parts
+            value = event_data[2]
+        else:
+            if len(event_data) < 4:
+                return
+            endpoint_id, cluster, event_id = event_data[1:4]
+            value = event_data[7] if len(event_data) > 7 else None
+        try:
+            endpoint_id = int(endpoint_id)
+        except (TypeError, ValueError):
+            return
+        address = self.node_address_map.get((node_id, endpoint_id))
+        if address is None:
+            return
+        node = self.poly.getNode(address)
+        if node is not None and hasattr(node, "on_event"):
+            node.on_event(str(cluster), event_id, value)
+
     def handle_node_removed(self, node_id):
-        address = self.node_address_map.pop(node_id, None)
-        if address is not None:
+        addresses = [
+            self.node_address_map.pop(key)
+            for key in list(self.node_address_map)
+            if key[0] == node_id
+        ]
+        if addresses:
             LOGGER.info("Matter node %s was removed", node_id)
 
     def poll(self, poll_type):

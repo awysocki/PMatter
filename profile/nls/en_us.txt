@@ -8,6 +8,8 @@ ND-matterdimmer-NAME = Matter Dimmer
 ND-matterdimmer-ICON = SwitchLincDimmer
 ND-matterdimmer_ext-NAME = Matter Dimmer (Energy)
 ND-matterdimmer_ext-ICON = SwitchLincDimmer
+ND-matterbutton-NAME = Matter Button
+ND-matterbutton-ICON = RemoteLinc
 
 CMD-DISCOVER-NAME = Discover
 CMD-QUERY-NAME = Query
@@ -38,6 +40,9 @@ ST-MDIM_EXT-CC-NAME = Current Power
 ST-MDIM_EXT-TPW-NAME = Total Energy
 ST-MDIM_EXT-CV-NAME = Voltage
 ST-MDIM_EXT-CA-NAME = Current
+
+ST-MBTN-ST-NAME = Pressed
+ST-MBTN-GV0-NAME = Action
 
 BOOL-0 = Off
 BOOL-1 = On

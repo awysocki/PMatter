@@ -37,12 +37,14 @@ class MatterClient:
     proven out in testm.py).
     """
 
-    def __init__(self, host, port, on_attribute_update=None, on_node_removed=None):
+    def __init__(self, host, port, on_attribute_update=None, on_event_update=None,
+                 on_node_removed=None):
         self.host = host
         self.port = port
         self.uri = f"ws://{host}:{port}/ws"
 
         self.on_attribute_update = on_attribute_update
+        self.on_event_update = on_event_update
         self.on_node_removed = on_node_removed
 
         self._loop = None
@@ -168,6 +170,15 @@ class MatterClient:
                         self.on_attribute_update(node_id, attr_path, value)
                     except Exception as e:
                         LOGGER.error("Error in attribute update callback: %s", e)
+            return
+
+        if event_type == "event_updated":
+            evt_data = data.get("data", [])
+            if self.on_event_update:
+                try:
+                    self.on_event_update(evt_data)
+                except Exception as e:
+                    LOGGER.error("Error in event update callback: %s", e)
             return
 
         if event_type == "node_removed":

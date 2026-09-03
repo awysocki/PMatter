@@ -98,4 +98,18 @@
       </accepts>
     </cmds>
   </nodeDef>
+
+  <nodeDef id="matterbutton" nls="MBTN">
+    <editors />
+    <sts>
+      <st id="ST" editor="bool" />
+      <st id="GV0" editor="integer" />
+    </sts>
+    <cmds>
+      <sends />
+      <accepts>
+        <cmd id="QUERY" />
+      </accepts>
+    </cmds>
+  </nodeDef>
 </nodeDefs>

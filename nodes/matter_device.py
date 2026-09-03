@@ -407,3 +407,43 @@ class MatterDimmerExt(MatterDimmer):
         {"driver": "CV", "value": 0, "uom": 72},
         {"driver": "CA", "value": 0, "uom": 1},
     ]
+
+
+class MatterButton(udi_interface.Node):
+    """ISY node for a Matter Switch-cluster button endpoint."""
+
+    id = "matterbutton"
+    drivers = [
+        {"driver": "ST", "value": 0, "uom": 2},
+        {"driver": "GV0", "value": 0, "uom": 25},
+    ]
+
+    def __init__(self, polyglot, primary, address, name, matter_client,
+                 node_id, endpoint_id):
+        super(MatterButton, self).__init__(polyglot, primary, address, name)
+        self.matter = matter_client
+        self.node_id = node_id
+        self.endpoint_id = endpoint_id
+
+    def query(self, command=None):
+        self.reportDrivers()
+
+    def on_event(self, cluster, event_id, value=None):
+        if cluster != "59":
+            return
+        try:
+            action = int(event_id)
+        except (TypeError, ValueError):
+            return
+        self.setDriver("GV0", action)
+        self.setDriver("ST", 1)
+        self.reportDrivers()
+        self.setDriver("ST", 0)
+        self.reportDrivers()
+
+    def on_attribute(self, cluster, attribute, value):
+        # Some Matter bridges surface Switch actions as attribute updates.
+        if cluster == "59" and attribute in ("0", "1", "2"):
+            self.on_event(cluster, attribute, value)
+
+    commands = {"QUERY": query}
