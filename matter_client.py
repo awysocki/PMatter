@@ -175,7 +175,7 @@ class MatterClient:
                         LOGGER.error("Error in attribute update callback: %s", e)
             return
 
-        if event_type in ("event_updated", "event_occurred", "event_report"):
+        if event_type in ("node_event", "event_updated", "event_occurred", "event_report"):
             evt_data = data.get("data", [])
             if self.on_event_update:
                 try:
