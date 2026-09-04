@@ -98,7 +98,12 @@ Matter **requires** IPv6 enabled on the host network interface:
 
 ### Raw event debugging
 
-Use `raw.py` when you want to inspect the unfiltered messages coming from the MatterJS server. It opens the local WebSocket at `ws://localhost:5580/ws`, subscribes to `start_listening`, and prints each incoming event as formatted JSON. This is helpful for understanding the exact payloads emitted by the server when devices report state changes, are added, or otherwise update.
+Use the `matt` wrapper when you want to inspect every message coming from the Matter server:
+
+  matt monitor
+  matt monitor ws://192.168.2.88:5580/ws
+
+It prints one compact line per packet. Button events look like `EVENT node=16 ep=2 cluster=59 event=1 data={'newPosition': 1}`, while large node snapshots are summarized as response counts. You can also run `python3 raw.py [ws://host:5580/ws]` directly.
 
 ---
 

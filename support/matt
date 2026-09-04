@@ -2,6 +2,7 @@
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PYTHON_ENGINE="${SCRIPT_DIR}/matter_cli.py"
+RAW_ENGINE="${SCRIPT_DIR}/raw.py"
 
 show_help() {
     echo "Matter CLI Tool Usage:"
@@ -12,6 +13,7 @@ show_help() {
     echo "  matt features <node_id>  - List clusters/attributes (feature list) for a node"
     echo "  matt on <node_id>        - Turn a switch ON"
     echo "  matt off <node_id>       - Turn a switch OFF"
+    echo "  matt monitor [ws://host:5580/ws] - Print every Matter server message"
 }
 
 if [ $# -lt 1 ]; then
@@ -22,6 +24,9 @@ fi
 case "$1" in
     add|commission|del|delete|remove|list|ls|status|info|features|feature|caps|capabilities|on|off)
         python3 "${PYTHON_ENGINE}" "$@"
+        ;;
+    monitor|listen|events|raw)
+        python3 "${RAW_ENGINE}" "${2:-ws://localhost:5580/ws}"
         ;;
     -h|--help|help)
         show_help

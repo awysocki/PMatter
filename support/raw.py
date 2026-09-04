@@ -1,37 +1,61 @@
 import asyncio
 import json
+import sys
 import websockets
 
-MATTER_URI = "ws://localhost:5580/ws"
+DEFAULT_MATTER_URI = "ws://localhost:5580/ws"
+
+
+def compact_message(message):
+  """Return one short line for the most useful parts of a server packet."""
+  try:
+    data = json.loads(message)
+  except (TypeError, ValueError):
+    return str(message).replace("\n", " ")[:240]
+
+  event_type = data.get("event")
+  if event_type == "node_event":
+    event = data.get("data", {})
+    return (
+        "EVENT node={node} ep={endpoint} cluster={cluster} event={event_id} data={data}"
+        .format(
+            node=event.get("node_id", "?"),
+            endpoint=event.get("endpoint_id", "?"),
+            cluster=event.get("cluster_id", "?"),
+            event_id=event.get("event_id", "?"),
+            data=event.get("data", {}),
+        )
+    )
+  if event_type == "attribute_updated":
+    values = data.get("data", [])
+    return f"ATTR {values}"
+  if event_type:
+    return f"EVENT {event_type}"
+  if "message_id" in data:
+    result = data.get("result")
+    if isinstance(result, list):
+      return f"RESPONSE {data['message_id']} items={len(result)}"
+    return f"RESPONSE {data['message_id']}"
+  return "PACKET " + json.dumps(data, separators=(",", ":"))[:220]
 
 
 async def debug_events():
-  print(f"Connecting to {MATTER_URI}...")
-  async with websockets.connect(MATTER_URI) as ws:
-    # 1. Server info handshake
+  matter_uri = sys.argv[1] if len(sys.argv) > 1 else DEFAULT_MATTER_URI
+  print(f"Connecting to {matter_uri}...")
+  async with websockets.connect(matter_uri) as ws:
     handshake = await ws.recv()
-    print(f"\n[SERVER HANDSHAKE]\n{handshake}\n")
+    print(f"HANDSHAKE {compact_message(handshake)}", flush=True)
 
     # 2. Subscribe to event stream
     await ws.send(
         json.dumps({"message_id": "sub_events", "command": "start_listening"})
     )
 
-    print("=" * 60)
-    print("LISTENING FOR RAW MATTER SERVER EVENTS")
-    print("Now open the TAPO APP and toggle the switch on/off...")
-    print("=" * 60 + "\n")
+    print("LISTENING - press a button (Ctrl+C to stop)", flush=True)
 
     while True:
       msg = await ws.recv()
-      data = json.loads(msg)
-
-      # Filter out static node dump on initial connect if too noisy
-      if data.get("message_id") == "sub_events":
-        print("[SUBSCRIBED SUCCESSFULLY] Initial node snapshot received.")
-        continue
-
-      print(f"[RAW INCOMING EVENT]\n{json.dumps(data, indent=2)}\n")
+      print(compact_message(msg), flush=True)
 
 
 if __name__ == "__main__":
