@@ -42,8 +42,10 @@ ST-MDIM_EXT-CV-NAME = Voltage
 ST-MDIM_EXT-CA-NAME = Current
 
 ST-MBTN-ST-NAME = Pressed
-ST-MBTN-GV0-NAME = Pressed
-ST-MBTN-GV1-NAME = Action
+ST-MBTN-GV1-NAME = Top Button
+ST-MBTN-GV2-NAME = Bottom Button
+ST-MBTN-BATLVL-NAME = Battery Level
+ST-MBTN-BATVOLT-NAME = Battery Voltage
 
 BOOL-0 = Off
 BOOL-1 = On

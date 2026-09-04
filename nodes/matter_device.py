@@ -417,46 +417,69 @@ class MatterDimmerExt(MatterDimmer):
 
 
 class MatterButton(MatterDevice):
-    """ISY node for a Matter Switch-cluster button endpoint."""
+    """Single ISY node representing the buttons on one Matter device."""
 
     id = "matterbutton"
     drivers = [
         {"driver": "ST", "value": 0, "uom": 2},
-        {"driver": "GV0", "value": 0, "uom": 2},
         {"driver": "GV1", "value": 0, "uom": 25},
+        {"driver": "GV2", "value": 0, "uom": 25},
+        {"driver": "BATLVL", "value": 0, "uom": 51},
+        {"driver": "BATVOLT", "value": 0, "uom": 72},
     ]
 
     def __init__(self, polyglot, primary, address, name, matter_client,
-                 node_id, endpoint_id):
+                 node_id, endpoint_ids):
         super(MatterButton, self).__init__(
-            polyglot, primary, address, name, matter_client, node_id, endpoint_id
+            polyglot, primary, address, name, matter_client, node_id, 0
         )
+        self.endpoint_ids = set(endpoint_ids)
+
+    def set_battery(self, value):
+        if isinstance(value, (int, float)):
+            self._set_live_driver("BATLVL", max(0, min(100, value / 2)))
+
+    def set_battery_voltage(self, value):
+        if isinstance(value, (int, float)):
+            self._set_live_driver("BATVOLT", round(value / 1000.0, 3))
 
     def query(self, command=None):
         self.reportDrivers()
 
-    def on_event(self, cluster, event_id, value=None):
+    def on_event(self, cluster, event_id, value=None, endpoint_id=None):
         if cluster != "59":
+            return
+        if endpoint_id not in self.endpoint_ids:
             return
         try:
             action = int(event_id)
         except (TypeError, ValueError):
             return
 
-        self._set_live_driver("GV1", action)
-        if action in (0, 1, 4):
+        driver = "GV1" if endpoint_id == 1 else "GV2"
+        if action in (0, 1):
+            event_value = 1
             pressed = 1
-        elif action in (2, 3, 5):
+        elif action in (2,):
+            event_value = 3
+            pressed = 1
+        elif action in (4,):
+            event_value = 2
+            pressed = 1
+        elif action in (3, 5, 6):
+            event_value = 0
             pressed = 0
         else:
             return
 
-        self._set_live_driver("GV0", pressed)
+        self._set_live_driver(driver, event_value)
         self._set_live_driver("ST", pressed)
 
     def on_attribute(self, cluster, attribute, value):
         # Some Matter bridges surface Switch actions as attribute updates.
-        if cluster == "59" and attribute in ("0", "1", "2"):
-            self.on_event(cluster, attribute, value)
+        if cluster == "47" and attribute == "1":
+            self.set_battery(value)
+        elif cluster == "47" and attribute == "0":
+            self.set_battery_voltage(value)
 
     commands = {"QUERY": query}

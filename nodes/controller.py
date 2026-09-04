@@ -184,22 +184,30 @@ class Controller(udi_interface.Node):
             LOGGER.debug("Matter node %s has no supported endpoints, skipping", node_id)
             return
 
-        for endpoint_id in sorted(endpoints_with_switch):
-            address = f"mn{node_id}e{endpoint_id}"
+        if endpoints_with_switch:
+            address = f"mn{node_id}"
             if address in self.poly.nodes():
+                device = self.poly.getNode(address)
+            else:
+                name = self._device_name(matter_node, node_id, min(endpoints_with_switch))
+                device = MatterButton(
+                    self.poly, self.address, address, name, self.matter,
+                    node_id, sorted(endpoints_with_switch),
+                )
+                self.poly.addNode(device)
+                LOGGER.info(
+                    "Added Matter button node '%s' (node %s endpoints %s)",
+                    name, node_id, sorted(endpoints_with_switch),
+                )
+            for endpoint_id in endpoints_with_switch:
                 self.node_address_map[(node_id, endpoint_id)] = address
-                continue
-            name = self._device_name(matter_node, node_id, endpoint_id)
-            device = MatterButton(
-                self.poly, self.address, address, name, self.matter,
-                node_id, endpoint_id,
-            )
-            self.poly.addNode(device)
-            self.node_address_map[(node_id, endpoint_id)] = address
-            LOGGER.info(
-                "Added Matter button node '%s' (node %s endpoint %s)",
-                name, node_id, endpoint_id,
-            )
+            self.node_address_map[(node_id, 0)] = address
+            battery = attributes.get("0/47/1")
+            if battery is not None and hasattr(device, "set_battery"):
+                device.set_battery(battery)
+            battery_voltage = attributes.get("0/47/0")
+            if battery_voltage is not None and hasattr(device, "set_battery_voltage"):
+                device.set_battery_voltage(battery_voltage)
 
         for endpoint_id in sorted(endpoints_with_onoff):
             address = f"mn{node_id}e{endpoint_id}"
@@ -342,7 +350,7 @@ class Controller(udi_interface.Node):
             return
         node = self.poly.getNode(address)
         if node is not None and hasattr(node, "on_event"):
-            node.on_event(str(cluster), event_id, value)
+            node.on_event(str(cluster), event_id, value, endpoint_id)
 
     def handle_node_removed(self, node_id):
         addresses = [
