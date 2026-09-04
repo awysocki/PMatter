@@ -155,6 +155,18 @@ Pair, view, or remove Matter devices from the local fabric:
       # or using a QR code string:
       matt add MT:Y3.K042C00KA0648A00
 
+  To use a Matter Server on another machine:
+
+      matt --server ws://192.168.2.88:5580/ws add 34970112332
+      matt --server ws://192.168.2.88:5580/ws monitor
+
+  For a Thread device such as the IKEA BILRESA, the Matter Server performs
+  commissioning through an existing Thread Border Router. You do not enter
+  your Wi-Fi password into `matt`: Thread devices use Thread credentials,
+  not Wi-Fi credentials. Make sure the Matter Server host has a working
+  Thread Border Router connection and then run the normal commissioning
+  command with the device's Matter setup code or QR payload.
+
 * **Remove / Unpair a Device:**
       matt del 1
 

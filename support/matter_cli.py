@@ -6,10 +6,11 @@ Handles WebSocket IPC commands to python-matter-server.
 
 import asyncio
 import json
+import os
 import sys
 import websockets
 
-SERVER_URI = "ws://localhost:5580/ws"
+SERVER_URI = os.environ.get("MATTER_SERVER_URI", "ws://localhost:5580/ws")
 
 
 async def send_command(payload):

@@ -1,9 +1,12 @@
 import asyncio
 import json
+import os
 import sys
 import websockets
 
-DEFAULT_MATTER_URI = "ws://localhost:5580/ws"
+DEFAULT_MATTER_URI = os.environ.get(
+  "MATTER_SERVER_URI", "ws://localhost:5580/ws"
+)
 
 
 def compact_message(message):
