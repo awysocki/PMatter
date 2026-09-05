@@ -434,6 +434,7 @@ class MatterButton(MatterDevice):
             polyglot, primary, address, name, matter_client, node_id, 0
         )
         self.endpoint_ids = set(endpoint_ids)
+        self._pressed_endpoints = set()
 
     def set_battery(self, value):
         if isinstance(value, (int, float)):
@@ -446,11 +447,18 @@ class MatterButton(MatterDevice):
     def query(self, command=None):
         self.reportDrivers()
 
-    def _begin_press(self):
-        """Clear completed actions before reporting a new button gesture."""
-        self._set_live_driver("GV1", 0)
-        self._set_live_driver("GV2", 0)
+    def _begin_press(self, endpoint_id):
+        """Start one button gesture without clearing another active button."""
+        if not self._pressed_endpoints:
+            self._set_live_driver("GV1", 0)
+            self._set_live_driver("GV2", 0)
+        self._pressed_endpoints.add(endpoint_id)
         self._set_live_driver("ST", 1)
+
+    def _end_press(self, endpoint_id):
+        """End one button gesture and retain status for other active buttons."""
+        self._pressed_endpoints.discard(endpoint_id)
+        self._set_live_driver("ST", 1 if self._pressed_endpoints else 0)
 
     def on_event(self, cluster, event_id, value=None, endpoint_id=None):
         if cluster != "59":
@@ -467,21 +475,21 @@ class MatterButton(MatterDevice):
         # 1=InitialPress, 2=LongPress, 3=ShortRelease, 4=LongRelease,
         # 5=MultiPressOngoing, 6=MultiPressComplete.
         if action == 1:
-            self._begin_press()
+            self._begin_press(endpoint_id)
         elif action == 2:
-            self._begin_press()
+            self._begin_press(endpoint_id)
             self._set_live_driver(driver, 3)
         elif action == 5:
-            self._begin_press()
+            self._begin_press(endpoint_id)
         elif action in (3, 4):
-            self._set_live_driver("ST", 0)
+            self._end_press(endpoint_id)
         elif action == 6:
             press_count = value.get("totalNumberOfPressesCounted") if isinstance(value, dict) else None
             if press_count == 1:
                 self._set_live_driver(driver, 1)
             elif press_count == 2:
                 self._set_live_driver(driver, 2)
-            self._set_live_driver("ST", 0)
+            self._end_press(endpoint_id)
         else:
             return
 
