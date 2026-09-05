@@ -461,22 +461,23 @@ class MatterButton(MatterDevice):
         # 1=InitialPress, 2=LongPress, 3=ShortRelease, 4=LongRelease,
         # 5=MultiPressOngoing, 6=MultiPressComplete.
         if action == 1:
-            event_value = 1
-            pressed = 1
+            self._set_live_driver("ST", 1)
         elif action == 2:
-            event_value = 3
-            pressed = 1
+            self._set_live_driver(driver, 3)
+            self._set_live_driver("ST", 1)
         elif action == 5:
-            event_value = 2
-            pressed = 1
-        elif action in (3, 4, 6):
-            event_value = 0
-            pressed = 0
+            self._set_live_driver("ST", 1)
+        elif action in (3, 4):
+            self._set_live_driver("ST", 0)
+        elif action == 6:
+            press_count = value.get("totalNumberOfPressesCounted") if isinstance(value, dict) else None
+            if press_count == 1:
+                self._set_live_driver(driver, 1)
+            elif press_count == 2:
+                self._set_live_driver(driver, 2)
+            self._set_live_driver("ST", 0)
         else:
             return
-
-        self._set_live_driver(driver, event_value)
-        self._set_live_driver("ST", pressed)
 
     def on_attribute(self, cluster, attribute, value):
         # Some Matter bridges surface Switch actions as attribute updates.

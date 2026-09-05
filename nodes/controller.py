@@ -314,6 +314,8 @@ class Controller(udi_interface.Node):
                 value = event_data.get("value")
             if isinstance(value, dict):
                 value = value.get("data", value)
+            if value is None:
+                value = event_data.get("data")
         elif isinstance(event_data, (list, tuple)):
             if len(event_data) < 3:
                 LOGGER.warning("Ignoring malformed Matter event data: %s", event_data)
