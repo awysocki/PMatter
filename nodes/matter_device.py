@@ -446,6 +446,12 @@ class MatterButton(MatterDevice):
     def query(self, command=None):
         self.reportDrivers()
 
+    def _begin_press(self):
+        """Clear completed actions before reporting a new button gesture."""
+        self._set_live_driver("GV1", 0)
+        self._set_live_driver("GV2", 0)
+        self._set_live_driver("ST", 1)
+
     def on_event(self, cluster, event_id, value=None, endpoint_id=None):
         if cluster != "59":
             return
@@ -461,12 +467,12 @@ class MatterButton(MatterDevice):
         # 1=InitialPress, 2=LongPress, 3=ShortRelease, 4=LongRelease,
         # 5=MultiPressOngoing, 6=MultiPressComplete.
         if action == 1:
-            self._set_live_driver("ST", 1)
+            self._begin_press()
         elif action == 2:
+            self._begin_press()
             self._set_live_driver(driver, 3)
-            self._set_live_driver("ST", 1)
         elif action == 5:
-            self._set_live_driver("ST", 1)
+            self._begin_press()
         elif action in (3, 4):
             self._set_live_driver("ST", 0)
         elif action == 6:
