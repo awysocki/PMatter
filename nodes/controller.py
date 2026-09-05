@@ -202,10 +202,10 @@ class Controller(udi_interface.Node):
             for endpoint_id in endpoints_with_switch:
                 self.node_address_map[(node_id, endpoint_id)] = address
             self.node_address_map[(node_id, 0)] = address
-            battery = attributes.get("0/47/1")
+            battery = attributes.get("0/47/12")
             if battery is not None and hasattr(device, "set_battery"):
                 device.set_battery(battery)
-            battery_voltage = attributes.get("0/47/0")
+            battery_voltage = attributes.get("0/47/11")
             if battery_voltage is not None and hasattr(device, "set_battery_voltage"):
                 device.set_battery_voltage(battery_voltage)
 

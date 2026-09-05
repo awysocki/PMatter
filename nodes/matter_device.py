@@ -481,9 +481,9 @@ class MatterButton(MatterDevice):
 
     def on_attribute(self, cluster, attribute, value):
         # Some Matter bridges surface Switch actions as attribute updates.
-        if cluster == "47" and attribute == "1":
+        if cluster == "47" and attribute == "12":
             self.set_battery(value)
-        elif cluster == "47" and attribute == "0":
+        elif cluster == "47" and attribute == "11":
             self.set_battery_voltage(value)
 
     commands = {"QUERY": query}
