@@ -20,4 +20,7 @@
   <editor id="amp">
     <range uom="1" min="0" max="100" prec="2" />
   </editor>
+  <editor id="temperature">
+    <range uom="4" min="-100" max="200" prec="2" />
+  </editor>
 </editors>

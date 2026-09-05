@@ -10,6 +10,8 @@ ND-matterdimmer_ext-NAME = Matter Dimmer (Energy)
 ND-matterdimmer_ext-ICON = SwitchLincDimmer
 ND-matterbutton-NAME = Matter Button
 ND-matterbutton-ICON = RemoteLinc
+ND-mattersensor-NAME = Matter Temperature/Humidity Sensor
+ND-mattersensor-ICON = Thermostat
 
 CMD-DISCOVER-NAME = Discover
 CMD-QUERY-NAME = Query
@@ -46,6 +48,12 @@ ST-MBTN-GV1-NAME = Top Button
 ST-MBTN-GV2-NAME = Bottom Button
 ST-MBTN-BATLVL-NAME = Battery Level
 ST-MBTN-BATVOLT-NAME = Battery Voltage
+
+ST-MSNSR-ST-NAME = Status
+ST-MSNSR-GV0-NAME = Temperature
+ST-MSNSR-GV1-NAME = Humidity
+ST-MSNSR-BATLVL-NAME = Battery Level
+ST-MSNSR-BATVOLT-NAME = Battery Voltage
 
 BOOL-0 = Off
 BOOL-1 = On

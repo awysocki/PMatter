@@ -115,4 +115,21 @@
       </accepts>
     </cmds>
   </nodeDef>
+
+  <nodeDef id="mattersensor" nls="MSNSR">
+    <editors />
+    <sts>
+      <st id="ST" editor="bool" />
+      <st id="GV0" editor="temperature" />
+      <st id="GV1" editor="pct" />
+      <st id="BATLVL" editor="pct" />
+      <st id="BATVOLT" editor="volt" />
+    </sts>
+    <cmds>
+      <sends />
+      <accepts>
+        <cmd id="QUERY" />
+      </accepts>
+    </cmds>
+  </nodeDef>
 </nodeDefs>

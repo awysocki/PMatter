@@ -501,3 +501,54 @@ class MatterButton(MatterDevice):
             self.set_battery_voltage(value)
 
     commands = {"QUERY": query}
+
+
+class MatterSensor(MatterDevice):
+    """Single ISY node representing a Matter temperature/humidity sensor."""
+
+    id = "mattersensor"
+    drivers = [
+        {"driver": "ST", "value": 1, "uom": 2},
+        {"driver": "GV0", "value": 0, "uom": 4},
+        {"driver": "GV1", "value": 0, "uom": 51},
+        {"driver": "BATLVL", "value": 0, "uom": 51},
+        {"driver": "BATVOLT", "value": 0, "uom": 72},
+    ]
+
+    def __init__(self, polyglot, primary, address, name, matter_client, node_id):
+        super(MatterSensor, self).__init__(
+            polyglot, primary, address, name, matter_client, node_id, 0
+        )
+
+    def set_temperature(self, value):
+        if isinstance(value, (int, float)):
+            self._set_live_driver("GV0", round(value / 100.0, 2))
+
+    def set_humidity(self, value):
+        if isinstance(value, (int, float)):
+            self._set_live_driver("GV1", max(0, min(100, value / 100.0)))
+
+    def set_battery(self, value):
+        if isinstance(value, (int, float)):
+            self._set_live_driver("BATLVL", max(0, min(100, value / 2)))
+
+    def set_battery_voltage(self, value):
+        if isinstance(value, (int, float)):
+            self._set_live_driver("BATVOLT", round(value / 1000.0, 3))
+
+    def query(self, command=None):
+        self.reportDrivers()
+
+    def on_attribute(self, cluster, attribute, value):
+        if attribute != "0" and not (cluster == "47" and attribute in ("11", "12")):
+            return
+        if cluster == "1026":
+            self.set_temperature(value)
+        elif cluster == "1029":
+            self.set_humidity(value)
+        elif cluster == "47" and attribute == "11":
+            self.set_battery_voltage(value)
+        elif cluster == "47" and attribute == "12":
+            self.set_battery(value)
+
+    commands = {"QUERY": query}

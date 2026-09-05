@@ -17,6 +17,7 @@ from nodes.matter_device import (
     MatterDimmer,
     MatterDimmerExt,
     MatterButton,
+    MatterSensor,
     parse_energy_attributes,
 )
 
@@ -165,6 +166,8 @@ class Controller(udi_interface.Node):
         endpoints_with_onoff = set()
         endpoints_with_level = set()
         endpoints_with_switch = set()
+        endpoints_with_temperature = set()
+        endpoints_with_humidity = set()
         for attr_path in attributes.keys():
             parts = attr_path.split("/")
             if len(parts) != 3:
@@ -179,8 +182,13 @@ class Controller(udi_interface.Node):
                 endpoints_with_level.add(endpoint)
             elif parts[1] == "59":
                 endpoints_with_switch.add(endpoint)
+            elif parts[1] == "1026":
+                endpoints_with_temperature.add(endpoint)
+            elif parts[1] == "1029":
+                endpoints_with_humidity.add(endpoint)
 
-        if not endpoints_with_onoff and not endpoints_with_switch:
+        if not (endpoints_with_onoff or endpoints_with_switch or
+                endpoints_with_temperature or endpoints_with_humidity):
             LOGGER.debug("Matter node %s has no supported endpoints, skipping", node_id)
             return
 
@@ -207,6 +215,33 @@ class Controller(udi_interface.Node):
                 device.set_battery(battery)
             battery_voltage = attributes.get("0/47/11")
             if battery_voltage is not None and hasattr(device, "set_battery_voltage"):
+                device.set_battery_voltage(battery_voltage)
+
+        if endpoints_with_temperature or endpoints_with_humidity:
+            address = f"mn{node_id}"
+            if address in self.poly.nodes():
+                device = self.poly.getNode(address)
+            else:
+                name = self._device_name(matter_node, node_id, 1)
+                device = MatterSensor(
+                    self.poly, self.address, address, name, self.matter, node_id
+                )
+                self.poly.addNode(device)
+                LOGGER.info("Added Matter sensor node '%s' (node %s)", name, node_id)
+            for endpoint_id in endpoints_with_temperature | endpoints_with_humidity:
+                self.node_address_map[(node_id, endpoint_id)] = address
+            self.node_address_map[(node_id, 0)] = address
+            temperature = attributes.get("1/1026/0")
+            if temperature is not None:
+                device.set_temperature(temperature)
+            humidity = attributes.get("2/1029/0")
+            if humidity is not None:
+                device.set_humidity(humidity)
+            battery = attributes.get("0/47/12")
+            if battery is not None:
+                device.set_battery(battery)
+            battery_voltage = attributes.get("0/47/11")
+            if battery_voltage is not None:
                 device.set_battery_voltage(battery_voltage)
 
         for endpoint_id in sorted(endpoints_with_onoff):
