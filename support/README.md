@@ -41,13 +41,19 @@ The Matter WebSocket daemon runs as a stateless, lightweight container inside Po
     # 2. Create persistent volume for fabric keys & node state storage
     podman volume create matterjs_data
 
-    # 3. Spin up the MatterJS server container
+    # 3. Spin up the MatterJS server container, you can run 'ip route' to find your eno0 name
     podman run -d \
-      --name matterjs-server \
-      --net=host \
-      --restart=always \
-      -v matterjs_data:/data \
-      ghcr.io/matter-js/matterjs-server:latest
+        --name matterjs-server \
+        --replace \
+        --net=host \
+        --cap-add=NET_ADMIN \
+        --cap-add=NET_RAW \
+        --restart=always \
+        -e LOG_LEVEL=info \
+        -e PRIMARY_INTERFACE=eno1 \
+        -e MATTER_MDNS_NETWORKINTERFACE=eno1 \
+        -v matterjs_data:/data:Z \
+        ghcr.io/matter-js/matterjs-server:latest
 
 The server listens locally on **`ws://localhost:5580/ws`**.
 
@@ -69,6 +75,35 @@ If `firewalld` is active on your host system, open the Matter WebSocket port (`5
 
     # 3. Reload firewall rules
     sudo firewall-cmd --reload
+
+To force your Linux host to accept and maintain Thread routing info permanently, run these sysctl commands on your host server:
+
+# Accept Router Advertisements even when static configs exist
+sysctl -w net.ipv6.conf.eno1.accept_ra=2
+sysctl -w net.ipv6.conf.all.accept_ra=2
+
+# Allow the kernel to store Thread IPv6 route info
+sysctl -w net.ipv6.conf.eno1.accept_ra_rt_info_max_plen=64
+sysctl -w net.ipv6.conf.all.accept_ra_rt_info_max_plen=64
+
+
+Extend the kernel's UDP connection tracking timeout so sleeping Thread sessions aren't dropped:
+
+sysctl -w net.netfilter.nf_conntrack_udp_timeout=120
+sysctl -w net.netfilter.nf_conntrack_udp_timeout_stream=3600
+
+To make these permanent across server reboots, add them to /etc/sysctl.d/99-matter.conf:
+
+Plaintext
+
+net.ipv6.conf.eno1.accept_ra=2
+net.ipv6.conf.eno1.accept_ra_rt_info_max_plen=64
+net.netfilter.nf_conntrack_udp_timeout=120
+net.netfilter.nf_conntrack_udp_timeout_stream=3600
+
+Apply with sysctl -p /etc/sysctl.d/99-matter.conf.
+
+
 
 ### IPv6 Readiness Checklist
 
