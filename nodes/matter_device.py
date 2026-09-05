@@ -511,6 +511,7 @@ class MatterSensor(MatterDevice):
         {"driver": "ST", "value": 1, "uom": 2},
         {"driver": "GV0", "value": 0, "uom": 4},
         {"driver": "GV1", "value": 0, "uom": 51},
+        {"driver": "GV2", "value": 32, "uom": 17},
         {"driver": "BATLVL", "value": 0, "uom": 51},
         {"driver": "BATVOLT", "value": 0, "uom": 72},
     ]
@@ -522,7 +523,9 @@ class MatterSensor(MatterDevice):
 
     def set_temperature(self, value):
         if isinstance(value, (int, float)):
-            self._set_live_driver("GV0", round(value / 100.0, 2))
+            celsius = round(value / 100.0, 2)
+            self._set_live_driver("GV0", celsius)
+            self._set_live_driver("GV2", round(celsius * 9 / 5 + 32, 2))
 
     def set_humidity(self, value):
         if isinstance(value, (int, float)):

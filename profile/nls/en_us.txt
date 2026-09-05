@@ -52,6 +52,7 @@ ST-MBTN-BATVOLT-NAME = Battery Voltage
 ST-MSNSR-ST-NAME = Status
 ST-MSNSR-GV0-NAME = Temperature
 ST-MSNSR-GV1-NAME = Humidity
+ST-MSNSR-GV2-NAME = Temperature (F)
 ST-MSNSR-BATLVL-NAME = Battery Level
 ST-MSNSR-BATVOLT-NAME = Battery Voltage
 

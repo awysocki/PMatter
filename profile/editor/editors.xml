@@ -23,4 +23,7 @@
   <editor id="temperature">
     <range uom="4" min="-100" max="200" prec="2" />
   </editor>
+  <editor id="temperature_f">
+    <range uom="17" min="-148" max="392" prec="2" />
+  </editor>
 </editors>

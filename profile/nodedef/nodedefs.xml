@@ -122,6 +122,7 @@
       <st id="ST" editor="bool" />
       <st id="GV0" editor="temperature" />
       <st id="GV1" editor="pct" />
+      <st id="GV2" editor="temperature_f" />
       <st id="BATLVL" editor="pct" />
       <st id="BATVOLT" editor="volt" />
     </sts>
