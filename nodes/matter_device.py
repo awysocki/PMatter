@@ -457,16 +457,19 @@ class MatterButton(MatterDevice):
             return
 
         driver = "GV1" if endpoint_id == 1 else "GV2"
-        if action in (0, 1):
+        # matterjs-server reports the Matter Switch events one-based:
+        # 1=InitialPress, 2=LongPress, 3=ShortRelease, 4=LongRelease,
+        # 5=MultiPressOngoing, 6=MultiPressComplete.
+        if action == 1:
             event_value = 1
             pressed = 1
-        elif action in (2,):
+        elif action == 2:
             event_value = 3
             pressed = 1
-        elif action in (4,):
+        elif action == 5:
             event_value = 2
             pressed = 1
-        elif action in (3, 5, 6):
+        elif action in (3, 4, 6):
             event_value = 0
             pressed = 0
         else:

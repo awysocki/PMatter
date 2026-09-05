@@ -22,10 +22,12 @@ The Matter WebSocket daemon runs as a stateless, lightweight container inside Po
 
 ## 2. Server Installation & Launch (Podman)
 
-### Prerequisites & Dependencies
+### Prerequisites
+
 * **OS:** Enterprise Linux / RHEL 9 or compatible
 * **Container Engine:** Podman
-* **Network Requirement:** Active IPv6 interface on the local subnet (required for Matter mDNS discovery)
+* **Network:** An active IPv6 LAN interface for Matter mDNS discovery
+* **Thread:** A reachable Thread Border Router for Thread devices such as IKEA BILRESA
 
 > **Note:** These steps were tested on Rocky Linux 9. Other RHEL 9 compatible
 > distributions (RHEL, AlmaLinux, CentOS Stream, etc.) should work as well,
@@ -41,7 +43,10 @@ The Matter WebSocket daemon runs as a stateless, lightweight container inside Po
     # 2. Create persistent volume for fabric keys & node state storage
     podman volume create matterjs_data
 
-    # 3. Spin up the MatterJS server container, you can run 'ip route' to find your eno0 name
+    # 3. Identify the LAN interface, then replace eno1 below if needed.
+    ip route get 1.1.1.1
+
+    # 4. Start the MatterJS server container.
     podman run -d \
         --name matterjs-server \
         --replace \
@@ -55,7 +60,9 @@ The Matter WebSocket daemon runs as a stateless, lightweight container inside Po
         -v matterjs_data:/data:Z \
         ghcr.io/matter-js/matterjs-server:latest
 
-The server listens locally on **`ws://localhost:5580/ws`**.
+The server listens on **`ws://localhost:5580/ws`**. Replace `eno1` in the
+environment variables and the Thread host settings below with the LAN interface
+identified in the preceding command.
 
 ---
 
@@ -63,7 +70,7 @@ The server listens locally on **`ws://localhost:5580/ws`**.
 
 Matter relies heavily on local IPv6 multicast (mDNS) and UDP transport for device discovery and control.
 
-### Firewall Configuration (`firewalld`)
+### Firewall (`firewalld`)
 
 If `firewalld` is active on your host system, open the Matter WebSocket port (`5580`) and mDNS discovery ports (`5353/udp`):
 
@@ -76,33 +83,34 @@ If `firewalld` is active on your host system, open the Matter WebSocket port (`5
     # 3. Reload firewall rules
     sudo firewall-cmd --reload
 
-To force your Linux host to accept and maintain Thread routing info permanently, run these sysctl commands on your host server:
+  ### Thread Host Networking
 
-# Accept Router Advertisements even when static configs exist
-sysctl -w net.ipv6.conf.eno1.accept_ra=2
-sysctl -w net.ipv6.conf.all.accept_ra=2
+  Thread devices do not use the Wi-Fi SSID/password. The Matter Server joins them
+  through a Thread Border Router. On the Matter Server host, accept IPv6 router
+  advertisements and retain Thread route information. Replace `eno1` with your
+  LAN interface.
 
-# Allow the kernel to store Thread IPv6 route info
-sysctl -w net.ipv6.conf.eno1.accept_ra_rt_info_max_plen=64
-sysctl -w net.ipv6.conf.all.accept_ra_rt_info_max_plen=64
+  Create `/etc/sysctl.d/99-matter.conf`:
 
+  ```ini
+  # Accept router advertisements even with static IPv6 configuration.
+  net.ipv6.conf.eno1.accept_ra=2
+  net.ipv6.conf.all.accept_ra=2
 
-Extend the kernel's UDP connection tracking timeout so sleeping Thread sessions aren't dropped:
-
-sysctl -w net.netfilter.nf_conntrack_udp_timeout=120
-sysctl -w net.netfilter.nf_conntrack_udp_timeout_stream=3600
-
-To make these permanent across server reboots, add them to /etc/sysctl.d/99-matter.conf:
-
-Plaintext
-
-net.ipv6.conf.eno1.accept_ra=2
+  # Retain IPv6 route information advertised by the Thread network.
 net.ipv6.conf.eno1.accept_ra_rt_info_max_plen=64
+  net.ipv6.conf.all.accept_ra_rt_info_max_plen=64
+
+  # Keep UDP state for sleeping Thread devices.
 net.netfilter.nf_conntrack_udp_timeout=120
 net.netfilter.nf_conntrack_udp_timeout_stream=3600
+  ```
 
-Apply with sysctl -p /etc/sysctl.d/99-matter.conf.
+  Apply the settings:
 
+  ```bash
+  sudo sysctl --system
+  ```
 
 
 ### IPv6 Readiness Checklist
@@ -135,8 +143,8 @@ Matter **requires** IPv6 enabled on the host network interface:
 
 Use the `matt` wrapper when you want to inspect every message coming from the Matter server:
 
-  matt monitor
-  matt monitor ws://192.168.2.88:5580/ws
+    matt monitor
+    matt monitor ws://192.168.2.88:5580/ws
 
 It prints one compact line per packet. Button events look like `EVENT node=16 ep=2 cluster=59 event=1 data={'newPosition': 1}`, while large node snapshots are summarized as response counts. You can also run `python3 raw.py [ws://host:5580/ws]` directly.
 
@@ -195,12 +203,11 @@ Pair, view, or remove Matter devices from the local fabric:
       matt --server ws://192.168.2.88:5580/ws add 34970112332
       matt --server ws://192.168.2.88:5580/ws monitor
 
-  For a Thread device such as the IKEA BILRESA, the Matter Server performs
-  commissioning through an existing Thread Border Router. You do not enter
-  your Wi-Fi password into `matt`: Thread devices use Thread credentials,
-  not Wi-Fi credentials. Make sure the Matter Server host has a working
-  Thread Border Router connection and then run the normal commissioning
-  command with the device's Matter setup code or QR payload.
+  For a Thread device such as the IKEA BILRESA, the Matter Server commissions
+  through an existing Thread Border Router. Do not enter a Wi-Fi password into
+  `matt`: Thread devices use Thread credentials. Confirm that the Matter Server
+  host has a working Border Router connection, then use the device's Matter
+  setup code or QR payload.
 
 * **Remove / Unpair a Device:**
       matt del 1
