@@ -6,15 +6,15 @@ RAW_ENGINE="${SCRIPT_DIR}/raw.py"
 
 show_help() {
     echo "Matter CLI Tool Usage:"
-    echo "  matt add <code/QR>       - Pair a new device (e.g., matt add 34970112332)"
-    echo "  matt del <node_id>       - Unpair/remove a device (e.g., matt del 1)"
-    echo "  matt list                - List all paired Matter devices and states"
-    echo "  matt status <node_id>    - Detailed metadata and state for a node"
-    echo "  matt features <node_id>  - List clusters/attributes (feature list) for a node"
-    echo "  matt on <node_id>        - Turn a switch ON"
-    echo "  matt off <node_id>       - Turn a switch OFF"
-    echo "  matt monitor [ws://host:5580/ws] - Print every Matter server message"
-    echo "  matt --server ws://host:5580/ws add <code/QR>"
+    echo "  matt add <code/QR> [node_id] - Pair device (e.g., matt add 34970112332 or matt add 34970112332 15)"
+    echo "  matt del <node_id>          - Unpair/remove a device (e.g., matt del 1)"
+    echo "  matt list                   - List all paired Matter devices and states"
+    echo "  matt status <node_id>       - Detailed metadata and state for a node"
+    echo "  matt features <node_id>     - List clusters/attributes (feature list) for a node"
+    echo "  matt on <node_id>           - Turn a switch ON"
+    echo "  matt off <node_id>          - Turn a switch OFF"
+    echo "  matt monitor [uri]          - Print raw Matter server WebSocket message stream"
+    echo "  matt --server ws://host:5580/ws add <code/QR> [node_id]"
 }
 
 if [ "${1:-}" = "--server" ]; then

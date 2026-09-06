@@ -16,6 +16,7 @@ from nodes.matter_device import (
     MatterDeviceExt,
     MatterDimmer,
     MatterDimmerExt,
+    MatterBrightnessWheel,
     MatterButton,
     MatterSensor,
     parse_energy_attributes,
@@ -192,22 +193,55 @@ class Controller(udi_interface.Node):
             LOGGER.debug("Matter node %s has no supported endpoints, skipping", node_id)
             return
 
-        if endpoints_with_switch:
+        wheel_controls = self._brightness_wheel_controls(
+            attributes, endpoints_with_switch
+        )
+        wheel_endpoints = {
+            endpoint
+            for control in wheel_controls.values()
+            if 3 in control and 4 in control
+            for endpoint in control.values()
+        }
+        button_endpoints = endpoints_with_switch - wheel_endpoints
+
+        for control_id, endpoints in sorted(wheel_controls.items()):
+            brighten_endpoint = endpoints.get(3)
+            dim_endpoint = endpoints.get(4)
+            if brighten_endpoint is None or dim_endpoint is None:
+                continue
+            address = f"mn{node_id}w{control_id}"
+            if address in self.poly.nodes():
+                device = self.poly.getNode(address)
+            else:
+                name = f"{self._device_name(matter_node, node_id, brighten_endpoint)} Wheel"
+                device = MatterBrightnessWheel(
+                    self.poly, self.address, address, name, self.matter,
+                    node_id, brighten_endpoint, dim_endpoint,
+                )
+                self.poly.addNode(device)
+                LOGGER.info(
+                    "Added Matter brightness wheel '%s' (node %s endpoints %s/%s)",
+                    name, node_id, brighten_endpoint, dim_endpoint,
+                )
+            self.node_address_map[(node_id, brighten_endpoint)] = address
+            self.node_address_map[(node_id, dim_endpoint)] = address
+
+        if button_endpoints:
             address = f"mn{node_id}"
             if address in self.poly.nodes():
                 device = self.poly.getNode(address)
             else:
-                name = self._device_name(matter_node, node_id, min(endpoints_with_switch))
+                name = self._device_name(matter_node, node_id, min(button_endpoints))
                 device = MatterButton(
                     self.poly, self.address, address, name, self.matter,
-                    node_id, sorted(endpoints_with_switch),
+                    node_id, sorted(button_endpoints),
                 )
                 self.poly.addNode(device)
                 LOGGER.info(
                     "Added Matter button node '%s' (node %s endpoints %s)",
-                    name, node_id, sorted(endpoints_with_switch),
+                    name, node_id, sorted(button_endpoints),
                 )
-            for endpoint_id in endpoints_with_switch:
+            for endpoint_id in button_endpoints:
                 self.node_address_map[(node_id, endpoint_id)] = address
             self.node_address_map[(node_id, 0)] = address
             battery = attributes.get("0/47/12")
@@ -301,6 +335,33 @@ class Controller(udi_interface.Node):
                 node_id,
                 endpoint_id,
             )
+
+    @staticmethod
+    def _brightness_wheel_controls(attributes, switch_endpoints):
+        """Return paired rotary endpoints keyed by Descriptor control ID."""
+        controls = {}
+        for endpoint_id in switch_endpoints:
+            tags = attributes.get(f"{endpoint_id}/29/4")
+            if not isinstance(tags, list):
+                continue
+            control_id = None
+            direction = None
+            is_rotary = False
+            for tag in tags:
+                if not isinstance(tag, dict):
+                    continue
+                namespace = tag.get("1", tag.get(1))
+                tag_id = tag.get("2", tag.get(2))
+                tag_text = tag.get("3", tag.get(3))
+                if namespace == 8 and tag_id == 6 and tag_text is not None:
+                    control_id = str(tag_text)
+                elif namespace == 67 and tag_id in (3, 4):
+                    direction = tag_id
+                elif namespace == 67 and tag_id == 8 and tag_text == "rotary":
+                    is_rotary = True
+            if is_rotary and control_id is not None and direction is not None:
+                controls.setdefault(control_id, {})[direction] = endpoint_id
+        return controls
 
     @staticmethod
     def _device_name(matter_node, node_id, endpoint_id):

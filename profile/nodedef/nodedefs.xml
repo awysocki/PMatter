@@ -99,6 +99,21 @@
     </cmds>
   </nodeDef>
 
+  <nodeDef id="matterbrightnesswheel" nls="MBWL">
+    <editors />
+    <sts>
+      <st id="ST" editor="bool" />
+      <st id="GV1" editor="bool" />
+      <st id="GV2" editor="bool" />
+    </sts>
+    <cmds>
+      <sends />
+      <accepts>
+        <cmd id="QUERY" />
+      </accepts>
+    </cmds>
+  </nodeDef>
+
   <nodeDef id="matterbutton" nls="MBTN">
     <editors />
     <sts>

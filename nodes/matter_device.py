@@ -416,6 +416,53 @@ class MatterDimmerExt(MatterDimmer):
     ]
 
 
+class MatterBrightnessWheel(MatterDevice):
+    """ISY node for a paired Matter Switch rotary brightness control."""
+
+    id = "matterbrightnesswheel"
+    drivers = [
+        {"driver": "ST", "value": 0, "uom": 2},
+        {"driver": "GV1", "value": 0, "uom": 2},
+        {"driver": "GV2", "value": 0, "uom": 2},
+    ]
+
+    def __init__(self, polyglot, primary, address, name, matter_client,
+                 node_id, brighten_endpoint, dim_endpoint):
+        super(MatterBrightnessWheel, self).__init__(
+            polyglot, primary, address, name, matter_client, node_id, 0
+        )
+        self.brighten_endpoint = brighten_endpoint
+        self.dim_endpoint = dim_endpoint
+
+    def query(self, command=None):
+        self.reportDrivers()
+
+    def on_event(self, cluster, event_id, _value=None, endpoint_id=None):
+        if cluster != "59":
+            return
+        if endpoint_id == self.brighten_endpoint:
+            driver = "GV1"
+        elif endpoint_id == self.dim_endpoint:
+            driver = "GV2"
+        else:
+            return
+        try:
+            action = int(event_id)
+        except (TypeError, ValueError):
+            return
+
+        # Matter Switch events are reported one-based. A wheel detent
+        # starts with InitialPress and ends with one of the release events.
+        if action in (1, 2, 5):
+            self._set_live_driver("ST", 1)
+            self._set_live_driver(driver, 1)
+        elif action in (3, 4, 6):
+            self._set_live_driver(driver, 0)
+            self._set_live_driver("ST", 0)
+
+    commands = {"QUERY": query}
+
+
 class MatterButton(MatterDevice):
     """Single ISY node representing the buttons on one Matter device."""
 

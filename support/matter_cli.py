@@ -25,12 +25,22 @@ async def send_command(payload):
     sys.exit(1)
 
 
-async def cmd_add(code):
+async def cmd_add(code, target_node_id=None):
   print(f"Initiating commissioning for code: {code}...")
+  args = {"code": code}
+
+  if target_node_id is not None:
+    try:
+      args["node_id"] = int(target_node_id)
+      print(f"Requesting explicit Node ID: {args['node_id']}")
+    except ValueError:
+      print("[FAIL] Error: Node ID must be an integer.")
+      return
+
   payload = {
       "message_id": "req_add",
       "command": "commission_with_code",
-      "args": {"code": code},
+      "args": args,
   }
   res = await send_command(payload)
 
@@ -254,7 +264,10 @@ def main():
     if len(sys.argv) < 3:
       print("Error: Missing setup code.")
       sys.exit(1)
-    asyncio.run(cmd_add(sys.argv[2]))
+    
+    code = sys.argv[2]
+    target_node = sys.argv[3] if len(sys.argv) >= 4 else None
+    asyncio.run(cmd_add(code, target_node))
 
   elif action in ["del", "delete", "remove"]:
     if len(sys.argv) < 3:

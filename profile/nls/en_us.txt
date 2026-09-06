@@ -8,6 +8,8 @@ ND-matterdimmer-NAME = Matter Dimmer
 ND-matterdimmer-ICON = SwitchLincDimmer
 ND-matterdimmer_ext-NAME = Matter Dimmer (Energy)
 ND-matterdimmer_ext-ICON = SwitchLincDimmer
+ND-matterbrightnesswheel-NAME = Matter Brightness Wheel
+ND-matterbrightnesswheel-ICON = SwitchLincDimmer
 ND-matterbutton-NAME = Matter Button
 ND-matterbutton-ICON = RemoteLinc
 ND-mattersensor-NAME = Matter Temperature/Humidity Sensor
@@ -42,6 +44,10 @@ ST-MDIM_EXT-CC-NAME = Current Power
 ST-MDIM_EXT-TPW-NAME = Total Energy
 ST-MDIM_EXT-CV-NAME = Voltage
 ST-MDIM_EXT-CA-NAME = Current
+
+ST-MBWL-ST-NAME = Active
+ST-MBWL-GV1-NAME = Brighten
+ST-MBWL-GV2-NAME = Dim
 
 ST-MBTN-ST-NAME = Pressed
 ST-MBTN-GV1-NAME = Top Button
