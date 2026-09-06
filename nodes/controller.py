@@ -218,7 +218,7 @@ class Controller(udi_interface.Node):
             if address in self.poly.nodes():
                 device = self.poly.getNode(address)
             else:
-                name = f"{self._device_name(matter_node, node_id, min(wheel_endpoints))} Brightness Wheel"
+                name = f"{self._device_name(matter_node, node_id)} Brightness Wheel"
                 device = MatterBrightnessWheel(
                     self.poly, self.address, address, name, self.matter,
                     node_id, brighten_endpoints, dim_endpoints,
@@ -244,7 +244,7 @@ class Controller(udi_interface.Node):
             if address in self.poly.nodes():
                 device = self.poly.getNode(address)
             else:
-                name = self._device_name(matter_node, node_id, min(button_endpoints))
+                name = self._device_name(matter_node, node_id)
                 device = MatterButton(
                     self.poly, self.address, address, name, self.matter,
                     node_id, sorted(button_endpoints),
@@ -269,7 +269,7 @@ class Controller(udi_interface.Node):
             if address in self.poly.nodes():
                 device = self.poly.getNode(address)
             else:
-                name = self._device_name(matter_node, node_id, 1)
+                name = self._device_name(matter_node, node_id)
                 device = MatterSensor(
                     self.poly, self.address, address, name, self.matter, node_id
                 )
@@ -297,7 +297,7 @@ class Controller(udi_interface.Node):
                 self.node_address_map[(node_id, endpoint_id)] = address
                 continue
 
-            name = self._device_name(matter_node, node_id, endpoint_id)
+            name = self._device_name(matter_node, node_id)
             is_dimmer = endpoint_id in endpoints_with_level
             onoff_path = f"{endpoint_id}/6/0"
             is_on = attributes.get(onoff_path)
@@ -384,12 +384,12 @@ class Controller(udi_interface.Node):
         return controls
 
     @staticmethod
-    def _device_name(matter_node, node_id, endpoint_id):
+    def _device_name(matter_node, node_id):
         for key in ("name", "device_name", "product_name"):
             value = matter_node.get(key)
             if value:
-                return f"{value} {endpoint_id}" if endpoint_id != 1 else value
-        return f"MNode {node_id}-{endpoint_id}"
+                return value
+        return f"PMatt {node_id}"
 
     def handle_attribute_update(self, node_id, attr_path, value):
         """Called from the MatterClient background thread."""
