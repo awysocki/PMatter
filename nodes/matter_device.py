@@ -453,6 +453,13 @@ class MatterBrightnessWheel(MatterDevice):
     def on_event(self, cluster, event_id, _value=None, endpoint_id=None):
         if cluster != "59":
             return
+        try:
+            action = int(event_id)
+        except (TypeError, ValueError):
+            return
+        if action in (1, 2):
+            self._set_live_driver("GV3", 0)
+            self._set_live_driver("GV4", 0)
         if endpoint_id in self.brighten_endpoints:
             driver = "GV1"
         elif endpoint_id in self.dim_endpoints:
@@ -461,10 +468,6 @@ class MatterBrightnessWheel(MatterDevice):
             self._handle_button_event(event_id, _value)
             return
         else:
-            return
-        try:
-            action = int(event_id)
-        except (TypeError, ValueError):
             return
 
         # Matter Switch events are reported one-based. A wheel detent
