@@ -218,7 +218,7 @@ class Controller(udi_interface.Node):
             if address in self.poly.nodes():
                 device = self.poly.getNode(address)
             else:
-                name = f"{self._device_name(matter_node, node_id)} Brightness Wheel"
+                name = self._node_name(matter_node, node_id, "Brightness Wheel")
                 device = MatterBrightnessWheel(
                     self.poly, self.address, address, name, self.matter,
                     node_id, brighten_endpoints, dim_endpoints,
@@ -244,7 +244,7 @@ class Controller(udi_interface.Node):
             if address in self.poly.nodes():
                 device = self.poly.getNode(address)
             else:
-                name = self._device_name(matter_node, node_id)
+                name = self._node_name(matter_node, node_id, "Button")
                 device = MatterButton(
                     self.poly, self.address, address, name, self.matter,
                     node_id, sorted(button_endpoints),
@@ -269,7 +269,9 @@ class Controller(udi_interface.Node):
             if address in self.poly.nodes():
                 device = self.poly.getNode(address)
             else:
-                name = self._device_name(matter_node, node_id)
+                name = self._node_name(
+                    matter_node, node_id, "Temperature/Humidity Sensor"
+                )
                 device = MatterSensor(
                     self.poly, self.address, address, name, self.matter, node_id
                 )
@@ -297,12 +299,18 @@ class Controller(udi_interface.Node):
                 self.node_address_map[(node_id, endpoint_id)] = address
                 continue
 
-            name = self._device_name(matter_node, node_id)
             is_dimmer = endpoint_id in endpoints_with_level
             onoff_path = f"{endpoint_id}/6/0"
             is_on = attributes.get(onoff_path)
             energy_data = parse_energy_attributes(attributes, endpoint_id)
             has_energy = len(energy_data) > 0
+            if is_dimmer:
+                device_type = "Dimmer"
+            elif has_energy:
+                device_type = "Plug"
+            else:
+                device_type = "Switch"
+            name = self._node_name(matter_node, node_id, device_type)
 
             if is_dimmer:
                 level = attributes.get(f"{endpoint_id}/8/0")
@@ -390,6 +398,10 @@ class Controller(udi_interface.Node):
             if value:
                 return value
         return f"PMatt {node_id}"
+
+    @classmethod
+    def _node_name(cls, matter_node, node_id, device_type):
+        return f"{cls._device_name(matter_node, node_id)} {device_type}"
 
     def handle_attribute_update(self, node_id, attr_path, value):
         """Called from the MatterClient background thread."""
