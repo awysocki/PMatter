@@ -106,6 +106,9 @@
       <st id="GV1" editor="bool" />
       <st id="GV2" editor="bool" />
       <st id="GV3" editor="integer" />
+      <st id="GV4" editor="integer" />
+      <st id="BATLVL" editor="pct" />
+      <st id="BATVOLT" editor="volt" />
     </sts>
     <cmds>
       <sends />

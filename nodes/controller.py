@@ -232,6 +232,12 @@ class Controller(udi_interface.Node):
             for endpoint_id in wheel_endpoints:
                 self.node_address_map[(node_id, endpoint_id)] = address
             self.node_address_map[(node_id, 0)] = address
+            battery = attributes.get("0/47/12")
+            if battery is not None:
+                device.set_battery(battery)
+            battery_voltage = attributes.get("0/47/11")
+            if battery_voltage is not None:
+                device.set_battery_voltage(battery_voltage)
 
         if button_endpoints:
             address = f"mn{node_id}b" if wheel_endpoints else f"mn{node_id}"

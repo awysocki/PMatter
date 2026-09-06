@@ -425,6 +425,9 @@ class MatterBrightnessWheel(MatterDevice):
         {"driver": "GV1", "value": 0, "uom": 2},
         {"driver": "GV2", "value": 0, "uom": 2},
         {"driver": "GV3", "value": 0, "uom": 25},
+        {"driver": "GV4", "value": 0, "uom": 25},
+        {"driver": "BATLVL", "value": 0, "uom": 51},
+        {"driver": "BATVOLT", "value": 0, "uom": 72},
     ]
 
     def __init__(self, polyglot, primary, address, name, matter_client,
@@ -435,6 +438,14 @@ class MatterBrightnessWheel(MatterDevice):
         self.brighten_endpoints = set(brighten_endpoints)
         self.dim_endpoints = set(dim_endpoints)
         self.button_endpoints = set(button_endpoints)
+
+    def set_battery(self, value):
+        if isinstance(value, (int, float)):
+            self._set_live_driver("BATLVL", max(0, min(100, value / 2)))
+
+    def set_battery_voltage(self, value):
+        if isinstance(value, (int, float)):
+            self._set_live_driver("BATVOLT", round(value / 1000.0, 3))
 
     def query(self, command=None):
         self.reportDrivers()
@@ -461,6 +472,10 @@ class MatterBrightnessWheel(MatterDevice):
         if action in (1, 2, 5):
             self._set_live_driver("ST", 1)
             self._set_live_driver(driver, 1)
+            if isinstance(_value, dict):
+                count = _value.get("currentNumberOfPressesCounted")
+                if isinstance(count, int):
+                    self._set_live_driver("GV4", count)
         elif action in (3, 4, 6):
             self._set_live_driver(driver, 0)
             self._set_live_driver("ST", 0)
@@ -485,6 +500,8 @@ class MatterBrightnessWheel(MatterDevice):
             press_count = value.get("totalNumberOfPressesCounted") if isinstance(value, dict) else None
             if press_count in (1, 2):
                 self._set_live_driver("GV3", press_count)
+            if isinstance(press_count, int):
+                self._set_live_driver("GV4", press_count)
             self._set_live_driver("ST", 0)
 
     commands = {"QUERY": query}
