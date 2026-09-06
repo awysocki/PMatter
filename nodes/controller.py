@@ -204,33 +204,37 @@ class Controller(udi_interface.Node):
         }
         button_endpoints = endpoints_with_switch - wheel_endpoints
 
-        for control_id, endpoints in sorted(wheel_controls.items()):
-            brighten_endpoint = endpoints.get(3)
-            dim_endpoint = endpoints.get(4)
-            button_endpoint = endpoints.get("button")
-            if (brighten_endpoint is None or dim_endpoint is None or
-                    button_endpoint is None):
-                continue
-            address = f"mn{node_id}w{control_id}"
+        if wheel_endpoints:
+            brighten_endpoints = []
+            dim_endpoints = []
+            center_button_endpoints = []
+            for endpoints in wheel_controls.values():
+                if 3 not in endpoints or 4 not in endpoints or "button" not in endpoints:
+                    continue
+                brighten_endpoints.append(endpoints[3])
+                dim_endpoints.append(endpoints[4])
+                center_button_endpoints.append(endpoints["button"])
+            address = f"mn{node_id}"
             if address in self.poly.nodes():
                 device = self.poly.getNode(address)
             else:
-                name = f"{self._device_name(matter_node, node_id, brighten_endpoint)} Wheel"
+                name = f"{self._device_name(matter_node, node_id, min(wheel_endpoints))} Brightness Wheel"
                 device = MatterBrightnessWheel(
                     self.poly, self.address, address, name, self.matter,
-                    node_id, brighten_endpoint, dim_endpoint, button_endpoint,
+                    node_id, brighten_endpoints, dim_endpoints,
+                    center_button_endpoints,
                 )
                 self.poly.addNode(device)
                 LOGGER.info(
-                    "Added Matter brightness wheel '%s' (node %s endpoints %s/%s/%s)",
-                    name, node_id, brighten_endpoint, dim_endpoint, button_endpoint,
+                    "Added Matter brightness wheel '%s' (node %s endpoints %s)",
+                    name, node_id, sorted(wheel_endpoints),
                 )
-            self.node_address_map[(node_id, brighten_endpoint)] = address
-            self.node_address_map[(node_id, dim_endpoint)] = address
-            self.node_address_map[(node_id, button_endpoint)] = address
+            for endpoint_id in wheel_endpoints:
+                self.node_address_map[(node_id, endpoint_id)] = address
+            self.node_address_map[(node_id, 0)] = address
 
         if button_endpoints:
-            address = f"mn{node_id}"
+            address = f"mn{node_id}b" if wheel_endpoints else f"mn{node_id}"
             if address in self.poly.nodes():
                 device = self.poly.getNode(address)
             else:

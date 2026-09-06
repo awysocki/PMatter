@@ -428,13 +428,13 @@ class MatterBrightnessWheel(MatterDevice):
     ]
 
     def __init__(self, polyglot, primary, address, name, matter_client,
-                 node_id, brighten_endpoint, dim_endpoint, button_endpoint):
+                 node_id, brighten_endpoints, dim_endpoints, button_endpoints):
         super(MatterBrightnessWheel, self).__init__(
             polyglot, primary, address, name, matter_client, node_id, 0
         )
-        self.brighten_endpoint = brighten_endpoint
-        self.dim_endpoint = dim_endpoint
-        self.button_endpoint = button_endpoint
+        self.brighten_endpoints = set(brighten_endpoints)
+        self.dim_endpoints = set(dim_endpoints)
+        self.button_endpoints = set(button_endpoints)
 
     def query(self, command=None):
         self.reportDrivers()
@@ -442,11 +442,11 @@ class MatterBrightnessWheel(MatterDevice):
     def on_event(self, cluster, event_id, _value=None, endpoint_id=None):
         if cluster != "59":
             return
-        if endpoint_id == self.brighten_endpoint:
+        if endpoint_id in self.brighten_endpoints:
             driver = "GV1"
-        elif endpoint_id == self.dim_endpoint:
+        elif endpoint_id in self.dim_endpoints:
             driver = "GV2"
-        elif endpoint_id == self.button_endpoint:
+        elif endpoint_id in self.button_endpoints:
             self._handle_button_event(event_id, _value)
             return
         else:
