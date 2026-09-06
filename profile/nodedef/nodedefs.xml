@@ -105,6 +105,7 @@
       <st id="ST" editor="bool" />
       <st id="GV1" editor="bool" />
       <st id="GV2" editor="bool" />
+      <st id="GV3" editor="integer" />
     </sts>
     <cmds>
       <sends />

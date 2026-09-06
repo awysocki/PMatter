@@ -417,22 +417,24 @@ class MatterDimmerExt(MatterDimmer):
 
 
 class MatterBrightnessWheel(MatterDevice):
-    """ISY node for a paired Matter Switch rotary brightness control."""
+    """ISY node for a Matter rotary brightness control and center button."""
 
     id = "matterbrightnesswheel"
     drivers = [
         {"driver": "ST", "value": 0, "uom": 2},
         {"driver": "GV1", "value": 0, "uom": 2},
         {"driver": "GV2", "value": 0, "uom": 2},
+        {"driver": "GV3", "value": 0, "uom": 25},
     ]
 
     def __init__(self, polyglot, primary, address, name, matter_client,
-                 node_id, brighten_endpoint, dim_endpoint):
+                 node_id, brighten_endpoint, dim_endpoint, button_endpoint):
         super(MatterBrightnessWheel, self).__init__(
             polyglot, primary, address, name, matter_client, node_id, 0
         )
         self.brighten_endpoint = brighten_endpoint
         self.dim_endpoint = dim_endpoint
+        self.button_endpoint = button_endpoint
 
     def query(self, command=None):
         self.reportDrivers()
@@ -444,6 +446,9 @@ class MatterBrightnessWheel(MatterDevice):
             driver = "GV1"
         elif endpoint_id == self.dim_endpoint:
             driver = "GV2"
+        elif endpoint_id == self.button_endpoint:
+            self._handle_button_event(event_id, _value)
+            return
         else:
             return
         try:
@@ -458,6 +463,28 @@ class MatterBrightnessWheel(MatterDevice):
             self._set_live_driver(driver, 1)
         elif action in (3, 4, 6):
             self._set_live_driver(driver, 0)
+            self._set_live_driver("ST", 0)
+
+    def _handle_button_event(self, event_id, value):
+        """Report center-button single, double, and long press actions."""
+        try:
+            action = int(event_id)
+        except (TypeError, ValueError):
+            return
+        if action == 1:
+            self._set_live_driver("GV3", 0)
+            self._set_live_driver("ST", 1)
+        elif action == 2:
+            self._set_live_driver("GV3", 3)
+            self._set_live_driver("ST", 1)
+        elif action == 5:
+            self._set_live_driver("ST", 1)
+        elif action in (3, 4):
+            self._set_live_driver("ST", 0)
+        elif action == 6:
+            press_count = value.get("totalNumberOfPressesCounted") if isinstance(value, dict) else None
+            if press_count in (1, 2):
+                self._set_live_driver("GV3", press_count)
             self._set_live_driver("ST", 0)
 
     commands = {"QUERY": query}

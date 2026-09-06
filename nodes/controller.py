@@ -199,7 +199,7 @@ class Controller(udi_interface.Node):
         wheel_endpoints = {
             endpoint
             for control in wheel_controls.values()
-            if 3 in control and 4 in control
+            if 3 in control and 4 in control and "button" in control
             for endpoint in control.values()
         }
         button_endpoints = endpoints_with_switch - wheel_endpoints
@@ -207,7 +207,9 @@ class Controller(udi_interface.Node):
         for control_id, endpoints in sorted(wheel_controls.items()):
             brighten_endpoint = endpoints.get(3)
             dim_endpoint = endpoints.get(4)
-            if brighten_endpoint is None or dim_endpoint is None:
+            button_endpoint = endpoints.get("button")
+            if (brighten_endpoint is None or dim_endpoint is None or
+                    button_endpoint is None):
                 continue
             address = f"mn{node_id}w{control_id}"
             if address in self.poly.nodes():
@@ -216,15 +218,16 @@ class Controller(udi_interface.Node):
                 name = f"{self._device_name(matter_node, node_id, brighten_endpoint)} Wheel"
                 device = MatterBrightnessWheel(
                     self.poly, self.address, address, name, self.matter,
-                    node_id, brighten_endpoint, dim_endpoint,
+                    node_id, brighten_endpoint, dim_endpoint, button_endpoint,
                 )
                 self.poly.addNode(device)
                 LOGGER.info(
-                    "Added Matter brightness wheel '%s' (node %s endpoints %s/%s)",
-                    name, node_id, brighten_endpoint, dim_endpoint,
+                    "Added Matter brightness wheel '%s' (node %s endpoints %s/%s/%s)",
+                    name, node_id, brighten_endpoint, dim_endpoint, button_endpoint,
                 )
             self.node_address_map[(node_id, brighten_endpoint)] = address
             self.node_address_map[(node_id, dim_endpoint)] = address
+            self.node_address_map[(node_id, button_endpoint)] = address
 
         if button_endpoints:
             address = f"mn{node_id}"
@@ -338,7 +341,7 @@ class Controller(udi_interface.Node):
 
     @staticmethod
     def _brightness_wheel_controls(attributes, switch_endpoints):
-        """Return paired rotary endpoints keyed by Descriptor control ID."""
+        """Return rotary and button endpoints keyed by Descriptor control ID."""
         controls = {}
         for endpoint_id in switch_endpoints:
             tags = attributes.get(f"{endpoint_id}/29/4")
@@ -347,6 +350,7 @@ class Controller(udi_interface.Node):
             control_id = None
             direction = None
             is_rotary = False
+            is_button = False
             for tag in tags:
                 if not isinstance(tag, dict):
                     continue
@@ -359,8 +363,14 @@ class Controller(udi_interface.Node):
                     direction = tag_id
                 elif namespace == 67 and tag_id == 8 and tag_text == "rotary":
                     is_rotary = True
-            if is_rotary and control_id is not None and direction is not None:
+                elif namespace == 67 and tag_id == 8 and tag_text == "button":
+                    is_button = True
+            if control_id is None:
+                continue
+            if is_rotary and direction is not None:
                 controls.setdefault(control_id, {})[direction] = endpoint_id
+            elif is_button:
+                controls.setdefault(control_id, {})["button"] = endpoint_id
         return controls
 
     @staticmethod

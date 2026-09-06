@@ -48,6 +48,7 @@ ST-MDIM_EXT-CA-NAME = Current
 ST-MBWL-ST-NAME = Active
 ST-MBWL-GV1-NAME = Brighten
 ST-MBWL-GV2-NAME = Dim
+ST-MBWL-GV3-NAME = Center Button
 
 ST-MBTN-ST-NAME = Pressed
 ST-MBTN-GV1-NAME = Top Button

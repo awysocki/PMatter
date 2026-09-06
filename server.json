@@ -10,7 +10,7 @@
   "longPoll": "600",
   "testMode": false,
   "logLevel": "INFO",
-  "profile_version": "3.7.0",
+  "profile_version": "3.8.0",
   "version": "2026.9.5",
   "credits": [
     {
