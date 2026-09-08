@@ -26,4 +26,10 @@
   <editor id="temperature_f">
     <range uom="17" min="-148" max="392" prec="2" />
   </editor>
+  <editor id="count">
+    <range uom="25" min="0" max="255" />
+  </editor>
+  <editor id="clickstate">
+    <range uom="25" subset="0-3" nls="CLICKST" />
+  </editor>
 </editors>

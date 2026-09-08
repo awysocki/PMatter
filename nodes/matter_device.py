@@ -457,38 +457,35 @@ class MatterBrightnessWheel(MatterDevice):
             action = int(event_id)
         except (TypeError, ValueError):
             return
-        if action in (1, 2):
-            self._set_live_driver("GV3", 0)
-            self._set_live_driver("GV4", 0)
+
         if endpoint_id in self.brighten_endpoints:
             driver = "GV1"
         elif endpoint_id in self.dim_endpoints:
             driver = "GV2"
         elif endpoint_id in self.button_endpoints:
-            self._handle_button_event(event_id, _value)
+            self._handle_button_event(action, _value)
             return
         else:
             return
 
-        # Matter Switch events are reported one-based. A wheel detent
-        # starts with InitialPress and ends with one of the release events.
+        # Matter Switch events are reported one-based. ST tracks the
+        # wheel direction for the duration of the detent.
         if action in (1, 2, 5):
-            self._set_live_driver("ST", 1)
+            if action in (1, 5):
+                self._set_live_driver("GV4", 0)
             self._set_live_driver(driver, 1)
             if isinstance(_value, dict):
                 count = _value.get("currentNumberOfPressesCounted")
                 if isinstance(count, int):
                     self._set_live_driver("GV4", count)
+            self._set_live_driver("ST", 1)
         elif action in (3, 4, 6):
             self._set_live_driver(driver, 0)
             self._set_live_driver("ST", 0)
 
-    def _handle_button_event(self, event_id, value):
-        """Report center-button single, double, and long press actions."""
-        try:
-            action = int(event_id)
-        except (TypeError, ValueError):
-            return
+    def _handle_button_event(self, action, value):
+        """GV3 holds the center button's last click type (1/2/3); ST
+        tracks any press for its full duration, including a hold."""
         if action == 1:
             self._set_live_driver("GV3", 0)
             self._set_live_driver("ST", 1)
@@ -503,21 +500,20 @@ class MatterBrightnessWheel(MatterDevice):
             press_count = value.get("totalNumberOfPressesCounted") if isinstance(value, dict) else None
             if press_count in (1, 2):
                 self._set_live_driver("GV3", press_count)
-            if isinstance(press_count, int):
-                self._set_live_driver("GV4", press_count)
-            self._set_live_driver("ST", 0)
 
     commands = {"QUERY": query}
 
 
 class MatterButton(MatterDevice):
-    """Single ISY node representing the buttons on one Matter device."""
+    """Single ISY node representing up to two physical buttons on one
+    Matter device (e.g. a top/bottom rocker); GV0/GV1 each hold that
+    button's last click type (1/2/3), and ST tracks any press."""
 
     id = "matterbutton"
     drivers = [
         {"driver": "ST", "value": 0, "uom": 2},
+        {"driver": "GV0", "value": 0, "uom": 25},
         {"driver": "GV1", "value": 0, "uom": 25},
-        {"driver": "GV2", "value": 0, "uom": 25},
         {"driver": "BATLVL", "value": 0, "uom": 51},
         {"driver": "BATVOLT", "value": 0, "uom": 72},
     ]
@@ -542,15 +538,10 @@ class MatterButton(MatterDevice):
         self.reportDrivers()
 
     def _begin_press(self, endpoint_id):
-        """Start one button gesture without clearing another active button."""
-        if not self._pressed_endpoints:
-            self._set_live_driver("GV1", 0)
-            self._set_live_driver("GV2", 0)
         self._pressed_endpoints.add(endpoint_id)
         self._set_live_driver("ST", 1)
 
     def _end_press(self, endpoint_id):
-        """End one button gesture and retain status for other active buttons."""
         self._pressed_endpoints.discard(endpoint_id)
         self._set_live_driver("ST", 1 if self._pressed_endpoints else 0)
 
@@ -564,12 +555,14 @@ class MatterButton(MatterDevice):
         except (TypeError, ValueError):
             return
 
-        driver = "GV1" if endpoint_id == 1 else "GV2"
+        # endpoint 1 is the "top" button; any other endpoint is "bottom".
+        driver = "GV0" if endpoint_id == 1 else "GV1"
         # matterjs-server reports the Matter Switch events one-based:
         # 1=InitialPress, 2=LongPress, 3=ShortRelease, 4=LongRelease,
         # 5=MultiPressOngoing, 6=MultiPressComplete.
         if action == 1:
             self._begin_press(endpoint_id)
+            self._set_live_driver(driver, 0)
         elif action == 2:
             self._begin_press(endpoint_id)
             self._set_live_driver(driver, 3)
@@ -579,10 +572,8 @@ class MatterButton(MatterDevice):
             self._end_press(endpoint_id)
         elif action == 6:
             press_count = value.get("totalNumberOfPressesCounted") if isinstance(value, dict) else None
-            if press_count == 1:
-                self._set_live_driver(driver, 1)
-            elif press_count == 2:
-                self._set_live_driver(driver, 2)
+            if press_count in (1, 2):
+                self._set_live_driver(driver, press_count)
             self._end_press(endpoint_id)
         else:
             return

@@ -105,8 +105,8 @@
       <st id="ST" editor="bool" />
       <st id="GV1" editor="bool" />
       <st id="GV2" editor="bool" />
-      <st id="GV3" editor="integer" />
-      <st id="GV4" editor="integer" />
+      <st id="GV3" editor="clickstate" />
+      <st id="GV4" editor="count" />
       <st id="BATLVL" editor="pct" />
       <st id="BATVOLT" editor="volt" />
     </sts>
@@ -122,8 +122,8 @@
     <editors />
     <sts>
       <st id="ST" editor="bool" />
-      <st id="GV1" editor="integer" />
-      <st id="GV2" editor="integer" />
+      <st id="GV0" editor="clickstate" />
+      <st id="GV1" editor="clickstate" />
       <st id="BATLVL" editor="pct" />
       <st id="BATVOLT" editor="volt" />
     </sts>

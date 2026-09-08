@@ -54,8 +54,8 @@ ST-MBWL-BATLVL-NAME = Battery Level
 ST-MBWL-BATVOLT-NAME = Battery Voltage
 
 ST-MBTN-ST-NAME = Pressed
-ST-MBTN-GV1-NAME = Top Button
-ST-MBTN-GV2-NAME = Bottom Button
+ST-MBTN-GV0-NAME = Top Button
+ST-MBTN-GV1-NAME = Bottom Button
 ST-MBTN-BATLVL-NAME = Battery Level
 ST-MBTN-BATVOLT-NAME = Battery Voltage
 
@@ -65,6 +65,11 @@ ST-MSNSR-GV1-NAME = Humidity
 ST-MSNSR-GV2-NAME = Temperature (F)
 ST-MSNSR-BATLVL-NAME = Battery Level
 ST-MSNSR-BATVOLT-NAME = Battery Voltage
+
+CLICKST-0 = None
+CLICKST-1 = Single Click
+CLICKST-2 = Double Click
+CLICKST-3 = Hold
 
 BOOL-0 = Off
 BOOL-1 = On
