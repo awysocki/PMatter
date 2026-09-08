@@ -1,5 +1,7 @@
 ## Tested Device Compatibility
 
+These are the Matter devices I have tested. Ones with Check boxes, I was able to connect and get working.  No check box I tried but didn't get them to connect, usually to matterjs-server.
+
 - [x] **SONOFF**
   - [x] Mini-D (ESP32-D0WDR2)
 
