@@ -13,7 +13,7 @@ show_help() {
     echo "  matt features <node_id>     - List clusters/attributes (feature list) for a node"
     echo "  matt on <node_id>           - Turn a switch ON"
     echo "  matt off <node_id>          - Turn a switch OFF"
-    echo "  matt monitor [uri]          - Print raw Matter server WebSocket message stream"
+    echo "  matt monitor [uri] [node_id] - Print raw Matter server WebSocket message stream, optionally filtered to one node"
     echo "  matt --server ws://host:5580/ws add <code/QR> [node_id]"
 }
 
@@ -36,7 +36,8 @@ case "$1" in
         python3 "${PYTHON_ENGINE}" "$@"
         ;;
     monitor|listen|events|raw)
-        python3 "${RAW_ENGINE}" "${2:-ws://localhost:5580/ws}"
+        shift
+        python3 "${RAW_ENGINE}" "$@"
         ;;
     -h|--help|help)
         show_help

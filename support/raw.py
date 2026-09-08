@@ -9,6 +9,37 @@ DEFAULT_MATTER_URI = os.environ.get(
 )
 
 
+def parse_args(argv):
+  """Accept the URI and/or a node_id filter in either order.
+
+  A bare numeric argument is treated as a node_id filter; anything
+  containing "://" is treated as the server URI. With no node_id, every
+  device's events are printed; with one, only that node's are.
+  """
+  uri = DEFAULT_MATTER_URI
+  node_id = None
+  for arg in argv:
+    if "://" in arg:
+      uri = arg
+    elif arg.lstrip("-").isdigit():
+      node_id = int(arg)
+    else:
+      print(f"Ignoring unrecognized argument: {arg}", file=sys.stderr)
+  return uri, node_id
+
+
+def message_node_id(data):
+  """Return the node_id a packet is about, or None if it isn't per-node."""
+  event_type = data.get("event")
+  if event_type == "node_event":
+    return data.get("data", {}).get("node_id")
+  if event_type == "attribute_updated":
+    values = data.get("data", [])
+    if values:
+      return values[0]
+  return None
+
+
 def compact_message(message):
   """Return one short line for the most useful parts of a server packet."""
   try:
@@ -43,8 +74,10 @@ def compact_message(message):
 
 
 async def debug_events():
-  matter_uri = sys.argv[1] if len(sys.argv) > 1 else DEFAULT_MATTER_URI
+  matter_uri, node_id_filter = parse_args(sys.argv[1:])
   print(f"Connecting to {matter_uri}...")
+  if node_id_filter is not None:
+    print(f"Filtering output to node_id={node_id_filter}")
   async with websockets.connect(matter_uri) as ws:
     handshake = await ws.recv()
     print(f"HANDSHAKE {compact_message(handshake)}", flush=True)
@@ -58,6 +91,14 @@ async def debug_events():
 
     while True:
       msg = await ws.recv()
+      if node_id_filter is not None:
+        try:
+          data = json.loads(msg)
+        except (TypeError, ValueError):
+          data = {}
+        packet_node_id = message_node_id(data)
+        if packet_node_id is not None and packet_node_id != node_id_filter:
+          continue
       print(compact_message(msg), flush=True)
 
 
