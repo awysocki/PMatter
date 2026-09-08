@@ -488,7 +488,10 @@ class MatterBrightnessWheel(MatterDevice):
         transiently; it resets to 0 as soon as ST goes back off."""
         if action == 1:
             self._set_live_driver("GV3", 0)
-            self._set_live_driver("ST", 1)
+            # Force-report even if a prior dropped completion event left
+            # ST cached as 1, so every new press still flickers visibly.
+            self._live_driver_values["ST"] = 1
+            self.setDriver("ST", 1)
         elif action == 2:
             self._set_live_driver("GV3", 3)
         elif action == 4:
@@ -538,8 +541,13 @@ class MatterButton(MatterDevice):
         self.reportDrivers()
 
     def _begin_press(self, endpoint_id):
+        # InitialPress always means a genuinely new press on this endpoint,
+        # so force-report even if a prior dropped completion event left
+        # _pressed_endpoints/ST stuck, otherwise this press would silently
+        # never flicker.
         self._pressed_endpoints.add(endpoint_id)
-        self._set_live_driver("ST", 1)
+        self._live_driver_values["ST"] = 1
+        self.setDriver("ST", 1)
 
     def _end_press(self, endpoint_id):
         self._pressed_endpoints.discard(endpoint_id)
