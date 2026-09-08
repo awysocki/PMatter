@@ -484,22 +484,22 @@ class MatterBrightnessWheel(MatterDevice):
             self._set_live_driver("ST", 0)
 
     def _handle_button_event(self, action, value):
-        """GV3 holds the center button's last click type (1/2/3); ST
-        tracks any press for its full duration, including a hold."""
+        """GV3 holds the center button's last click type (1/2/3) only
+        transiently; it resets to 0 as soon as ST goes back off."""
         if action == 1:
             self._set_live_driver("GV3", 0)
             self._set_live_driver("ST", 1)
         elif action == 2:
             self._set_live_driver("GV3", 3)
-            self._set_live_driver("ST", 1)
-        elif action == 5:
-            self._set_live_driver("ST", 1)
-        elif action in (3, 4):
+        elif action == 4:
             self._set_live_driver("ST", 0)
+            self._set_live_driver("GV3", 0)
         elif action == 6:
             press_count = value.get("totalNumberOfPressesCounted") if isinstance(value, dict) else None
             if press_count in (1, 2):
                 self._set_live_driver("GV3", press_count)
+            self._set_live_driver("ST", 0)
+            self._set_live_driver("GV3", 0)
 
     commands = {"QUERY": query}
 
@@ -559,22 +559,22 @@ class MatterButton(MatterDevice):
         driver = "GV0" if endpoint_id == 1 else "GV1"
         # matterjs-server reports the Matter Switch events one-based:
         # 1=InitialPress, 2=LongPress, 3=ShortRelease, 4=LongRelease,
-        # 5=MultiPressOngoing, 6=MultiPressComplete.
+        # 5=MultiPressOngoing, 6=MultiPressComplete. The click type is
+        # only transient; it resets to 0 as soon as ST goes back off.
         if action == 1:
             self._begin_press(endpoint_id)
             self._set_live_driver(driver, 0)
         elif action == 2:
-            self._begin_press(endpoint_id)
             self._set_live_driver(driver, 3)
-        elif action == 5:
-            self._begin_press(endpoint_id)
-        elif action in (3, 4):
+        elif action == 4:
             self._end_press(endpoint_id)
+            self._set_live_driver(driver, 0)
         elif action == 6:
             press_count = value.get("totalNumberOfPressesCounted") if isinstance(value, dict) else None
             if press_count in (1, 2):
                 self._set_live_driver(driver, press_count)
             self._end_press(endpoint_id)
+            self._set_live_driver(driver, 0)
         else:
             return
 
