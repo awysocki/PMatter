@@ -17,4 +17,5 @@ These are the Matter devices I have tested. Ones with Check boxes, I was able to
   - [x] Timmerflotte - (Temp and Humidity sensor)
 
 - [ ] **meross**
-  - [ ] MSS425F - NO luck connecting to matterjs-server
+  - [ ] MSS425F - Power Strip
+  - [ ] MS504 - Light sensor/Motion/Presence
