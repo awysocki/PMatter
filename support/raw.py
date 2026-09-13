@@ -94,7 +94,7 @@ async def debug_events():
       if node_id_filter is not None:
         try:
           data = json.loads(msg)
-        except (TypeError, ValueError):
+        # except (TypeError, ValueError):
           data = {}
         packet_node_id = message_node_id(data)
         if packet_node_id is not None and packet_node_id != node_id_filter:
