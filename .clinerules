@@ -1,1 +1,0 @@
-DO NOT output JSON blocks or plain text explanations. You MUST strictly use Anthropic-style XML tags (e.g. <execute_command>command</execute_command>) to invoke tools.
