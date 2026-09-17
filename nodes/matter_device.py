@@ -668,7 +668,7 @@ class MatterMotionSensor(MatterDevice):
 
     def set_occupancy(self, value):
         if isinstance(value, (int, float)):
-            self._set_live_driver("ST", bool(value))
+            self._set_live_driver("ST", 1 if value else 0)
 
     def set_illuminance(self, value):
         if isinstance(value, (int, float)):

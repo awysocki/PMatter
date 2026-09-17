@@ -19,6 +19,7 @@ from nodes.matter_device import (
     MatterBrightnessWheel,
     MatterButton,
     MatterSensor,
+    MatterMotionSensor,
     parse_energy_attributes,
 )
 
@@ -169,6 +170,8 @@ class Controller(udi_interface.Node):
         endpoints_with_switch = set()
         endpoints_with_temperature = set()
         endpoints_with_humidity = set()
+        endpoints_with_illuminance = set()
+        endpoints_with_occupancy = set()
         for attr_path in attributes.keys():
             parts = attr_path.split("/")
             if len(parts) != 3:
@@ -187,9 +190,14 @@ class Controller(udi_interface.Node):
                 endpoints_with_temperature.add(endpoint)
             elif parts[1] == "1029":
                 endpoints_with_humidity.add(endpoint)
+            elif parts[1] == "1024":
+                endpoints_with_illuminance.add(endpoint)
+            elif parts[1] == "1030":
+                endpoints_with_occupancy.add(endpoint)
 
         if not (endpoints_with_onoff or endpoints_with_switch or
-                endpoints_with_temperature or endpoints_with_humidity):
+                endpoints_with_temperature or endpoints_with_humidity or
+                endpoints_with_illuminance or endpoints_with_occupancy):
             LOGGER.debug("Matter node %s has no supported endpoints, skipping", node_id)
             return
 
@@ -286,6 +294,39 @@ class Controller(udi_interface.Node):
             humidity = attributes.get("2/1029/0")
             if humidity is not None:
                 device.set_humidity(humidity)
+            battery = attributes.get("0/47/12")
+            if battery is not None:
+                device.set_battery(battery)
+            battery_voltage = attributes.get("0/47/11")
+            if battery_voltage is not None:
+                device.set_battery_voltage(battery_voltage)
+
+        if endpoints_with_illuminance or endpoints_with_occupancy:
+            address = f"mn{node_id}m"
+            if address in self.poly.nodes():
+                device = self.poly.getNode(address)
+            else:
+                name = self._node_name(matter_node, node_id, "Motion Sensor")
+                device = MatterMotionSensor(
+                    self.poly, self.address, address, name, self.matter, node_id
+                )
+                self.poly.addNode(device)
+                LOGGER.info(
+                    "Added Matter motion sensor '%s' (node %s endpoints %s)",
+                    name, node_id,
+                    sorted(endpoints_with_illuminance | endpoints_with_occupancy),
+                )
+            for endpoint_id in endpoints_with_illuminance | endpoints_with_occupancy:
+                self.node_address_map[(node_id, endpoint_id)] = address
+            self.node_address_map[(node_id, 0)] = address
+            for endpoint_id in endpoints_with_occupancy:
+                occupancy = attributes.get(f"{endpoint_id}/1030/0")
+                if occupancy is not None:
+                    device.set_occupancy(occupancy)
+            for endpoint_id in endpoints_with_illuminance:
+                illuminance = attributes.get(f"{endpoint_id}/1024/0")
+                if illuminance is not None:
+                    device.set_illuminance(illuminance)
             battery = attributes.get("0/47/12")
             if battery is not None:
                 device.set_battery(battery)

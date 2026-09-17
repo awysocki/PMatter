@@ -14,6 +14,8 @@ ND-matterbutton-NAME = Matter Button
 ND-matterbutton-ICON = RemoteLinc
 ND-mattersensor-NAME = Matter Temperature/Humidity Sensor
 ND-mattersensor-ICON = Thermostat
+ND-mattermotionsensor-NAME = Matter Motion Sensor
+ND-mattermotionsensor-ICON = MotionSensor
 
 CMD-DISCOVER-NAME = Discover
 CMD-QUERY-NAME = Query
@@ -65,6 +67,11 @@ ST-MSNSR-GV1-NAME = Humidity
 ST-MSNSR-GV2-NAME = Temperature (F)
 ST-MSNSR-BATLVL-NAME = Battery Level
 ST-MSNSR-BATVOLT-NAME = Battery Voltage
+
+ST-MMSN-ST-NAME = Motion
+ST-MMSN-GV1-NAME = Illuminance
+ST-MMSN-BATLVL-NAME = Battery Level
+ST-MMSN-BATVOLT-NAME = Battery Voltage
 
 CLICKST-0 = None
 CLICKST-1 = Single Click
