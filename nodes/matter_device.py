@@ -2,6 +2,8 @@
 ISY node representing a single Matter on/off endpoint (e.g. a smart plug
 or switch), driven through the shared MatterClient connection.
 """
+import math
+
 import udi_interface
 
 LOGGER = udi_interface.LOGGER
@@ -656,7 +658,6 @@ class MatterMotionSensor(MatterDevice):
     id = "mattermotionsensor"
     drivers = [
         {"driver": "ST", "value": 0, "uom": 2},
-        {"driver": "GV0", "value": 0, "uom": 2},
         {"driver": "GV1", "value": 0, "uom": 100},
         {"driver": "BATLVL", "value": 0, "uom": 51},
         {"driver": "BATVOLT", "value": 0, "uom": 72},
@@ -671,11 +672,11 @@ class MatterMotionSensor(MatterDevice):
         if isinstance(value, (int, float)):
             occupied = 1 if value else 0
             self._set_live_driver("ST", occupied)
-            self._set_live_driver("GV0", occupied)
 
     def set_illuminance(self, value):
         if isinstance(value, (int, float)):
-            self._set_live_driver("GV1", value)
+            lux = round(math.pow(10, value / 10000.0), 2)
+            self._set_live_driver("GV1", lux)
 
     def set_battery(self, value):
         if isinstance(value, (int, float)):

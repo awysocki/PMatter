@@ -157,7 +157,6 @@
     <editors />
     <sts>
       <st id="ST" editor="bool" />
-      <st id="GV0" editor="bool" />
       <st id="GV1" editor="lux" />
       <st id="BATLVL" editor="pct" />
       <st id="BATVOLT" editor="volt" />
