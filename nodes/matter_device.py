@@ -656,6 +656,7 @@ class MatterMotionSensor(MatterDevice):
     id = "mattermotionsensor"
     drivers = [
         {"driver": "ST", "value": 0, "uom": 2},
+        {"driver": "GV0", "value": 0, "uom": 2},
         {"driver": "GV1", "value": 0, "uom": 100},
         {"driver": "BATLVL", "value": 0, "uom": 51},
         {"driver": "BATVOLT", "value": 0, "uom": 72},
@@ -668,7 +669,9 @@ class MatterMotionSensor(MatterDevice):
 
     def set_occupancy(self, value):
         if isinstance(value, (int, float)):
-            self._set_live_driver("ST", 1 if value else 0)
+            occupied = 1 if value else 0
+            self._set_live_driver("ST", occupied)
+            self._set_live_driver("GV0", occupied)
 
     def set_illuminance(self, value):
         if isinstance(value, (int, float)):

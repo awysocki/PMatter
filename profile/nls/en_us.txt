@@ -69,6 +69,7 @@ ST-MSNSR-BATLVL-NAME = Battery Level
 ST-MSNSR-BATVOLT-NAME = Battery Voltage
 
 ST-MMSN-ST-NAME = Motion
+ST-MMSN-GV0-NAME = Motion
 ST-MMSN-GV1-NAME = Illuminance
 ST-MMSN-BATLVL-NAME = Battery Level
 ST-MMSN-BATVOLT-NAME = Battery Voltage
