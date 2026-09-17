@@ -648,3 +648,59 @@ class MatterSensor(MatterDevice):
             self.set_battery(value)
 
     commands = {"QUERY": query}
+
+
+class MatterMotionSensor(MatterDevice):
+    """Single ISY node representing an IKEA Matter motion/illuminance sensor."""
+
+    id = "mattermotionsensor"
+    drivers = [
+        {"driver": "ST", "value": 0, "uom": 2},
+        {"driver": "GV1", "value": 0, "uom": 100},
+        {"driver": "BATLVL", "value": 0, "uom": 51},
+        {"driver": "BATVOLT", "value": 0, "uom": 72},
+    ]
+
+    def __init__(self, polyglot, primary, address, name, matter_client, node_id):
+        super(MatterMotionSensor, self).__init__(
+            polyglot, primary, address, name, matter_client, node_id, 0
+        )
+
+    def set_occupancy(self, value):
+        if isinstance(value, (int, float)):
+            self._set_live_driver("ST", bool(value))
+
+    def set_illuminance(self, value):
+        if isinstance(value, (int, float)):
+            self._set_live_driver("GV1", value)
+
+    def set_battery(self, value):
+        if isinstance(value, (int, float)):
+            self._set_live_driver("BATLVL", max(0, min(100, value / 2)))
+
+    def set_battery_voltage(self, value):
+        if isinstance(value, (int, float)):
+            self._set_live_driver("BATVOLT", round(value / 1000.0, 3))
+
+    def query(self, command=None):
+        self.reportDrivers()
+
+    def on_attribute(self, cluster, attribute, value):
+        if attribute != "0" and not (cluster == "47" and attribute in ("11", "12")):
+            return
+        if cluster == "1030":
+            # Occupancy Sensing cluster
+            # Attribute 0 is Occupancy
+            if attribute == "0":
+                self.set_occupancy(value)
+        elif cluster == "1024":
+            # Illuminance Measurement cluster
+            # Attribute 0 is Illuminance
+            if attribute == "0":
+                self.set_illuminance(value)
+        elif cluster == "47" and attribute == "11":
+            self.set_battery_voltage(value)
+        elif cluster == "47" and attribute == "12":
+            self.set_battery(value)
+
+    commands = {"QUERY": query}

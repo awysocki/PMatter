@@ -152,4 +152,21 @@
       </accepts>
     </cmds>
   </nodeDef>
+
+  <nodeDef id="mattermotionsensor" nls="MMSN">
+    <editors />
+    <sts>
+      <st id="ST" editor="bool" />
+      <st id="GV0" editor="bool" />
+      <st id="GV1" editor="lux" />
+      <st id="BATLVL" editor="pct" />
+      <st id="BATVOLT" editor="volt" />
+    </sts>
+    <cmds>
+      <sends />
+      <accepts>
+        <cmd id="QUERY" />
+      </accepts>
+    </cmds>
+  </nodeDef>
 </nodeDefs>
