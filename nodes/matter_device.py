@@ -170,6 +170,7 @@ class MatterDevice(udi_interface.Node):
         self.matter = matter_client
         self.node_id = node_id
         self.endpoint_id = endpoint_id
+        self.energy_endpoint_id = endpoint_id
         self._live_driver_values = {}
 
     def _set_live_driver(self, driver, value):
@@ -191,7 +192,7 @@ class MatterDevice(udi_interface.Node):
             attributes = matter_node.get("attributes", {}) or {}
             value = attributes.get(f"{self.endpoint_id}/6/0")
             self.setDriver("ST", 1 if value else 0)
-            energy_data = parse_energy_attributes(attributes, self.endpoint_id)
+            energy_data = parse_energy_attributes(attributes, self.energy_endpoint_id)
             for drv, val in energy_data.items():
                 if val is not None:
                     self.setDriver(drv, val)
@@ -280,7 +281,7 @@ class MatterDimmer(MatterDevice):
             self._last_onoff = is_on
             self._last_level = level
             self._apply_state()
-            energy_data = parse_energy_attributes(attributes, self.endpoint_id)
+            energy_data = parse_energy_attributes(attributes, self.energy_endpoint_id)
             for drv, val in energy_data.items():
                 if val is not None:
                     self.setDriver(drv, val)
@@ -765,6 +766,49 @@ class MatterWaterSensor(MatterDevice):
             return
         if cluster == "69":
             self.set_leak(value)
+        elif cluster == "47" and attribute == "11":
+            self.set_battery_voltage(value)
+        elif cluster == "47" and attribute == "12":
+            self.set_battery(value)
+
+    commands = {"QUERY": query}
+
+
+class MatterContactSensor(MatterDevice):
+    """Single ISY node representing a Matter door/window (BooleanState) sensor."""
+
+    id = "mattercontactsensor"
+    drivers = [
+        {"driver": "ST", "value": 0, "uom": 25},
+        {"driver": "BATLVL", "value": 0, "uom": 51},
+        {"driver": "BATVOLT", "value": 0, "uom": 72},
+    ]
+
+    def __init__(self, polyglot, primary, address, name, matter_client, node_id):
+        super(MatterContactSensor, self).__init__(
+            polyglot, primary, address, name, matter_client, node_id, 0
+        )
+
+    def set_contact(self, value):
+        # BooleanState StateValue: True == open/no contact, False == closed.
+        self._set_live_driver("ST", 1 if value else 0)
+
+    def set_battery(self, value):
+        if isinstance(value, (int, float)):
+            self._set_live_driver("BATLVL", max(0, min(100, value / 2)))
+
+    def set_battery_voltage(self, value):
+        if isinstance(value, (int, float)):
+            self._set_live_driver("BATVOLT", round(value / 1000.0, 3))
+
+    def query(self, command=None):
+        self.reportDrivers()
+
+    def on_attribute(self, cluster, attribute, value):
+        if attribute != "0" and not (cluster == "47" and attribute in ("11", "12")):
+            return
+        if cluster == "69":
+            self.set_contact(value)
         elif cluster == "47" and attribute == "11":
             self.set_battery_voltage(value)
         elif cluster == "47" and attribute == "12":

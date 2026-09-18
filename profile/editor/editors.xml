@@ -41,4 +41,7 @@
   <editor id="airquality">
     <range uom="25" subset="0-6" nls="AQI" />
   </editor>
+  <editor id="openclosed">
+    <range uom="25" subset="0-1" nls="OPENCLOSED" />
+  </editor>
 </editors>

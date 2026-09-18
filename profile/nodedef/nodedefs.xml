@@ -186,4 +186,19 @@
       </accepts>
     </cmds>
   </nodeDef>
+
+  <nodeDef id="mattercontactsensor" nls="MCNT">
+    <editors />
+    <sts>
+      <st id="ST" editor="openclosed" />
+      <st id="BATLVL" editor="pct" />
+      <st id="BATVOLT" editor="volt" />
+    </sts>
+    <cmds>
+      <sends />
+      <accepts>
+        <cmd id="QUERY" />
+      </accepts>
+    </cmds>
+  </nodeDef>
 </nodeDefs>

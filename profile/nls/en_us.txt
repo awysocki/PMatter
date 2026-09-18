@@ -18,6 +18,8 @@ ND-mattermotionsensor-NAME = Matter Motion Sensor
 ND-mattermotionsensor-ICON = MotionSensor
 ND-matterwatersensor-NAME = Matter Water Leak Sensor
 ND-matterwatersensor-ICON = MotionSensor
+ND-mattercontactsensor-NAME = Matter Door/Window Sensor
+ND-mattercontactsensor-ICON = DoorSensor
 
 CMD-DISCOVER-NAME = Discover
 CMD-QUERY-NAME = Query
@@ -82,6 +84,10 @@ ST-MWTR-ST-NAME = Leak Detected
 ST-MWTR-BATLVL-NAME = Battery Level
 ST-MWTR-BATVOLT-NAME = Battery Voltage
 
+ST-MCNT-ST-NAME = Contact
+ST-MCNT-BATLVL-NAME = Battery Level
+ST-MCNT-BATVOLT-NAME = Battery Voltage
+
 CLICKST-0 = None
 CLICKST-1 = Single Click
 CLICKST-2 = Double Click
@@ -94,6 +100,9 @@ AQI-3 = Moderate
 AQI-4 = Poor
 AQI-5 = Very Poor
 AQI-6 = Extremely Poor
+
+OPENCLOSED-0 = Closed
+OPENCLOSED-1 = Open
 
 BOOL-0 = Off
 BOOL-1 = On

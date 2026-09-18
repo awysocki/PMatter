@@ -21,6 +21,7 @@ from nodes.matter_device import (
     MatterSensor,
     MatterMotionSensor,
     MatterWaterSensor,
+    MatterContactSensor,
     parse_energy_attributes,
 )
 
@@ -177,6 +178,7 @@ class Controller(udi_interface.Node):
         endpoints_with_illuminance = set()
         endpoints_with_occupancy = set()
         endpoints_with_water_leak = set()
+        all_endpoints = set()
         for attr_path in attributes.keys():
             parts = attr_path.split("/")
             if len(parts) != 3:
@@ -185,6 +187,7 @@ class Controller(udi_interface.Node):
                 endpoint = int(parts[0])
             except ValueError:
                 continue
+            all_endpoints.add(endpoint)
             if parts[1] == "6":
                 endpoints_with_onoff.add(endpoint)
             elif parts[1] == "8":
@@ -208,11 +211,28 @@ class Controller(udi_interface.Node):
             elif parts[1] == "69":
                 endpoints_with_water_leak.add(endpoint)
 
+        # The BooleanState cluster (69) is reused for several different
+        # physical sensor types; the Descriptor's DeviceTypeList tells us
+        # which one this endpoint actually is (21 = Contact Sensor,
+        # 67 = Water Leak Detector).
+        endpoints_with_contact = set()
+        for endpoint_id in list(endpoints_with_water_leak):
+            device_types = set()
+            for entry in attributes.get(f"{endpoint_id}/29/0") or []:
+                if isinstance(entry, dict):
+                    device_type = entry.get("0", entry.get(0))
+                    if device_type is not None:
+                        device_types.add(device_type)
+            if 21 in device_types:
+                endpoints_with_water_leak.discard(endpoint_id)
+                endpoints_with_contact.add(endpoint_id)
+
         if not (endpoints_with_onoff or endpoints_with_switch or
                 endpoints_with_temperature or endpoints_with_humidity or
                 endpoints_with_co2 or endpoints_with_pm25 or
                 endpoints_with_air_quality or endpoints_with_illuminance or
-                endpoints_with_occupancy or endpoints_with_water_leak):
+                endpoints_with_occupancy or endpoints_with_water_leak or
+                endpoints_with_contact):
             LOGGER.debug("Matter node %s has no supported endpoints, skipping", node_id)
             return
 
@@ -392,16 +412,58 @@ class Controller(udi_interface.Node):
             if battery_voltage is not None:
                 device.set_battery_voltage(battery_voltage)
 
+        if endpoints_with_contact:
+            address = f"mn{node_id}c"
+            if address in self.poly.nodes():
+                device = self.poly.getNode(address)
+            else:
+                name = self._node_name(matter_node, node_id, "Door/Window Sensor")
+                device = MatterContactSensor(
+                    self.poly, self.address, address, name, self.matter, node_id
+                )
+                self.poly.addNode(device)
+                LOGGER.info(
+                    "Added Matter contact sensor '%s' (node %s endpoints %s)",
+                    name, node_id, sorted(endpoints_with_contact),
+                )
+            for endpoint_id in endpoints_with_contact:
+                self.node_address_map[(node_id, endpoint_id)] = address
+                contact = attributes.get(f"{endpoint_id}/69/0")
+                if contact is not None:
+                    device.set_contact(contact)
+            self.node_address_map[(node_id, 0)] = address
+            battery = attributes.get("0/47/12")
+            if battery is not None:
+                device.set_battery(battery)
+            battery_voltage = attributes.get("0/47/11")
+            if battery_voltage is not None:
+                device.set_battery_voltage(battery_voltage)
+
         for endpoint_id in sorted(endpoints_with_onoff):
             address = f"mn{node_id}e{endpoint_id}"
             if address in self.poly.nodes():
                 self.node_address_map[(node_id, endpoint_id)] = address
+                existing = self.poly.getNode(address)
+                energy_ep = getattr(existing, "energy_endpoint_id", endpoint_id)
+                if energy_ep != endpoint_id:
+                    self.node_address_map[(node_id, energy_ep)] = address
                 continue
 
             is_dimmer = endpoint_id in endpoints_with_level
             onoff_path = f"{endpoint_id}/6/0"
             is_on = attributes.get(onoff_path)
             energy_data = parse_energy_attributes(attributes, endpoint_id)
+            energy_endpoint_id = endpoint_id
+            if not energy_data:
+                # Some devices (e.g. IKEA GRILLPLATS) report electrical
+                # power/energy clusters on a sibling endpoint rather than
+                # the OnOff endpoint itself.
+                for other_ep in sorted(all_endpoints - {endpoint_id}):
+                    candidate = parse_energy_attributes(attributes, other_ep)
+                    if candidate:
+                        energy_data = candidate
+                        energy_endpoint_id = other_ep
+                        break
             has_energy = len(energy_data) > 0
             if is_dimmer:
                 device_type = "Dimmer"
@@ -447,7 +509,10 @@ class Controller(udi_interface.Node):
             for drv, val in energy_data.items():
                 if val is not None:
                     device.setDriver(drv, val)
+            device.energy_endpoint_id = energy_endpoint_id
             self.node_address_map[(node_id, endpoint_id)] = address
+            if energy_endpoint_id != endpoint_id:
+                self.node_address_map[(node_id, energy_endpoint_id)] = address
             LOGGER.info(
                 "Added Matter %s node '%s' (node %s endpoint %s)",
                 "dimmer" if is_dimmer else "device",

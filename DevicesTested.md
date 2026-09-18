@@ -17,6 +17,9 @@ These are the Matter devices I have tested. Ones with Check boxes, I was able to
   - [x] Timmerflotte - (Temp and Humidity sensor)
   - [x] Myggspray Motion/light sensor
   - [x] Alpstuga Air Quality sensor
+  - [x] Klippbok Water Leak sensor
+  - [x] Grillplats Plug (on/off with power stats)
+  - [x] Myggbett Door/Window sensor
 
 - [ ] **meross**
   - [ ] MSS425F - Power Strip
