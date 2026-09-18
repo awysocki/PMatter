@@ -15,6 +15,8 @@ These are the Matter devices I have tested. Ones with Check boxes, I was able to
   - [x] Bilresa 2 button
   - [x] Bilresa 1 button with scroll
   - [x] Timmerflotte - (Temp and Humidity sensor)
+  - [x] Myggspray Motion/light sensor
+  - [x] Alpstuga Air Quality sensor
 
 - [ ] **meross**
   - [ ] MSS425F - Power Strip

@@ -170,6 +170,9 @@ class Controller(udi_interface.Node):
         endpoints_with_switch = set()
         endpoints_with_temperature = set()
         endpoints_with_humidity = set()
+        endpoints_with_co2 = set()
+        endpoints_with_pm25 = set()
+        endpoints_with_air_quality = set()
         endpoints_with_illuminance = set()
         endpoints_with_occupancy = set()
         for attr_path in attributes.keys():
@@ -190,6 +193,12 @@ class Controller(udi_interface.Node):
                 endpoints_with_temperature.add(endpoint)
             elif parts[1] == "1029":
                 endpoints_with_humidity.add(endpoint)
+            elif parts[1] == "1037":
+                endpoints_with_co2.add(endpoint)
+            elif parts[1] == "1066":
+                endpoints_with_pm25.add(endpoint)
+            elif parts[1] == "91":
+                endpoints_with_air_quality.add(endpoint)
             elif parts[1] == "1024":
                 endpoints_with_illuminance.add(endpoint)
             elif parts[1] == "1030":
@@ -197,7 +206,9 @@ class Controller(udi_interface.Node):
 
         if not (endpoints_with_onoff or endpoints_with_switch or
                 endpoints_with_temperature or endpoints_with_humidity or
-                endpoints_with_illuminance or endpoints_with_occupancy):
+                endpoints_with_co2 or endpoints_with_pm25 or
+                endpoints_with_air_quality or endpoints_with_illuminance or
+                endpoints_with_occupancy):
             LOGGER.debug("Matter node %s has no supported endpoints, skipping", node_id)
             return
 
@@ -285,7 +296,11 @@ class Controller(udi_interface.Node):
                 )
                 self.poly.addNode(device)
                 LOGGER.info("Added Matter sensor node '%s' (node %s)", name, node_id)
-            for endpoint_id in endpoints_with_temperature | endpoints_with_humidity:
+            for endpoint_id in (
+                endpoints_with_temperature | endpoints_with_humidity |
+                endpoints_with_co2 | endpoints_with_pm25 |
+                endpoints_with_air_quality
+            ):
                 self.node_address_map[(node_id, endpoint_id)] = address
             self.node_address_map[(node_id, 0)] = address
             temperature = attributes.get("1/1026/0")
@@ -294,6 +309,18 @@ class Controller(udi_interface.Node):
             humidity = attributes.get("2/1029/0")
             if humidity is not None:
                 device.set_humidity(humidity)
+            for endpoint_id in endpoints_with_co2:
+                co2 = attributes.get(f"{endpoint_id}/1037/0")
+                if co2 is not None:
+                    device.set_co2(co2)
+            for endpoint_id in endpoints_with_pm25:
+                pm25 = attributes.get(f"{endpoint_id}/1066/0")
+                if pm25 is not None:
+                    device.set_pm25(pm25)
+            for endpoint_id in endpoints_with_air_quality:
+                air_quality = attributes.get(f"{endpoint_id}/91/0")
+                if air_quality is not None:
+                    device.set_air_quality(air_quality)
             battery = attributes.get("0/47/12")
             if battery is not None:
                 device.set_battery(battery)

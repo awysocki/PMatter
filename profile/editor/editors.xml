@@ -35,4 +35,10 @@
   <editor id="clickstate">
     <range uom="25" subset="0-3" nls="CLICKST" />
   </editor>
+  <editor id="concentration">
+    <range uom="56" min="0" max="100000" prec="0" />
+  </editor>
+  <editor id="airquality">
+    <range uom="25" subset="0-6" nls="AQI" />
+  </editor>
 </editors>

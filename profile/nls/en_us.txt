@@ -65,6 +65,9 @@ ST-MSNSR-ST-NAME = Status
 ST-MSNSR-GV0-NAME = Temperature
 ST-MSNSR-GV1-NAME = Humidity
 ST-MSNSR-GV2-NAME = Temperature (F)
+ST-MSNSR-GV3-NAME = CO2 (ppm)
+ST-MSNSR-GV4-NAME = PM2.5 (ug/m3)
+ST-MSNSR-GV5-NAME = Air Quality
 ST-MSNSR-BATLVL-NAME = Battery Level
 ST-MSNSR-BATVOLT-NAME = Battery Voltage
 
@@ -77,6 +80,14 @@ CLICKST-0 = None
 CLICKST-1 = Single Click
 CLICKST-2 = Double Click
 CLICKST-3 = Hold
+
+AQI-0 = Unknown
+AQI-1 = Good
+AQI-2 = Fair
+AQI-3 = Moderate
+AQI-4 = Poor
+AQI-5 = Very Poor
+AQI-6 = Extremely Poor
 
 BOOL-0 = Off
 BOOL-1 = On

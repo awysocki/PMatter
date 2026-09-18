@@ -607,6 +607,9 @@ class MatterSensor(MatterDevice):
         {"driver": "GV0", "value": 0, "uom": 4},
         {"driver": "GV1", "value": 0, "uom": 51},
         {"driver": "GV2", "value": 32, "uom": 17},
+        {"driver": "GV3", "value": 0, "uom": 56},
+        {"driver": "GV4", "value": 0, "uom": 56},
+        {"driver": "GV5", "value": 0, "uom": 25},
         {"driver": "BATLVL", "value": 0, "uom": 51},
         {"driver": "BATVOLT", "value": 0, "uom": 72},
     ]
@@ -626,6 +629,18 @@ class MatterSensor(MatterDevice):
         if isinstance(value, (int, float)):
             self._set_live_driver("GV1", max(0, min(100, value / 100.0)))
 
+    def set_co2(self, value):
+        if isinstance(value, (int, float)):
+            self._set_live_driver("GV3", round(value))
+
+    def set_pm25(self, value):
+        if isinstance(value, (int, float)):
+            self._set_live_driver("GV4", round(value))
+
+    def set_air_quality(self, value):
+        if isinstance(value, (int, float)):
+            self._set_live_driver("GV5", int(value))
+
     def set_battery(self, value):
         if isinstance(value, (int, float)):
             self._set_live_driver("BATLVL", max(0, min(100, value / 2)))
@@ -644,6 +659,12 @@ class MatterSensor(MatterDevice):
             self.set_temperature(value)
         elif cluster == "1029":
             self.set_humidity(value)
+        elif cluster == "1037":
+            self.set_co2(value)
+        elif cluster == "1066":
+            self.set_pm25(value)
+        elif cluster == "91":
+            self.set_air_quality(value)
         elif cluster == "47" and attribute == "11":
             self.set_battery_voltage(value)
         elif cluster == "47" and attribute == "12":
