@@ -20,6 +20,7 @@ from nodes.matter_device import (
     MatterButton,
     MatterSensor,
     MatterMotionSensor,
+    MatterWaterSensor,
     parse_energy_attributes,
 )
 
@@ -175,6 +176,7 @@ class Controller(udi_interface.Node):
         endpoints_with_air_quality = set()
         endpoints_with_illuminance = set()
         endpoints_with_occupancy = set()
+        endpoints_with_water_leak = set()
         for attr_path in attributes.keys():
             parts = attr_path.split("/")
             if len(parts) != 3:
@@ -203,12 +205,14 @@ class Controller(udi_interface.Node):
                 endpoints_with_illuminance.add(endpoint)
             elif parts[1] == "1030":
                 endpoints_with_occupancy.add(endpoint)
+            elif parts[1] == "69":
+                endpoints_with_water_leak.add(endpoint)
 
         if not (endpoints_with_onoff or endpoints_with_switch or
                 endpoints_with_temperature or endpoints_with_humidity or
                 endpoints_with_co2 or endpoints_with_pm25 or
                 endpoints_with_air_quality or endpoints_with_illuminance or
-                endpoints_with_occupancy):
+                endpoints_with_occupancy or endpoints_with_water_leak):
             LOGGER.debug("Matter node %s has no supported endpoints, skipping", node_id)
             return
 
@@ -354,6 +358,33 @@ class Controller(udi_interface.Node):
                 illuminance = attributes.get(f"{endpoint_id}/1024/0")
                 if illuminance is not None:
                     device.set_illuminance(illuminance)
+            battery = attributes.get("0/47/12")
+            if battery is not None:
+                device.set_battery(battery)
+            battery_voltage = attributes.get("0/47/11")
+            if battery_voltage is not None:
+                device.set_battery_voltage(battery_voltage)
+
+        if endpoints_with_water_leak:
+            address = f"mn{node_id}w"
+            if address in self.poly.nodes():
+                device = self.poly.getNode(address)
+            else:
+                name = self._node_name(matter_node, node_id, "Water Leak Sensor")
+                device = MatterWaterSensor(
+                    self.poly, self.address, address, name, self.matter, node_id
+                )
+                self.poly.addNode(device)
+                LOGGER.info(
+                    "Added Matter water leak sensor '%s' (node %s endpoints %s)",
+                    name, node_id, sorted(endpoints_with_water_leak),
+                )
+            for endpoint_id in endpoints_with_water_leak:
+                self.node_address_map[(node_id, endpoint_id)] = address
+                leak = attributes.get(f"{endpoint_id}/69/0")
+                if leak is not None:
+                    device.set_leak(leak)
+            self.node_address_map[(node_id, 0)] = address
             battery = attributes.get("0/47/12")
             if battery is not None:
                 device.set_battery(battery)

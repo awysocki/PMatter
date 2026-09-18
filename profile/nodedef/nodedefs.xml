@@ -171,4 +171,19 @@
       </accepts>
     </cmds>
   </nodeDef>
+
+  <nodeDef id="matterwatersensor" nls="MWTR">
+    <editors />
+    <sts>
+      <st id="ST" editor="bool" />
+      <st id="BATLVL" editor="pct" />
+      <st id="BATVOLT" editor="volt" />
+    </sts>
+    <cmds>
+      <sends />
+      <accepts>
+        <cmd id="QUERY" />
+      </accepts>
+    </cmds>
+  </nodeDef>
 </nodeDefs>

@@ -16,6 +16,8 @@ ND-mattersensor-NAME = Matter Temperature/Humidity Sensor
 ND-mattersensor-ICON = Thermostat
 ND-mattermotionsensor-NAME = Matter Motion Sensor
 ND-mattermotionsensor-ICON = MotionSensor
+ND-matterwatersensor-NAME = Matter Water Leak Sensor
+ND-matterwatersensor-ICON = MotionSensor
 
 CMD-DISCOVER-NAME = Discover
 CMD-QUERY-NAME = Query
@@ -75,6 +77,10 @@ ST-MMSN-ST-NAME = Motion
 ST-MMSN-GV1-NAME = Illuminance
 ST-MMSN-BATLVL-NAME = Battery Level
 ST-MMSN-BATVOLT-NAME = Battery Voltage
+
+ST-MWTR-ST-NAME = Leak Detected
+ST-MWTR-BATLVL-NAME = Battery Level
+ST-MWTR-BATVOLT-NAME = Battery Voltage
 
 CLICKST-0 = None
 CLICKST-1 = Single Click

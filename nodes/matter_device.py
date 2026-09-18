@@ -729,3 +729,45 @@ class MatterMotionSensor(MatterDevice):
             self.set_battery(value)
 
     commands = {"QUERY": query}
+
+
+class MatterWaterSensor(MatterDevice):
+    """Single ISY node representing a Matter water leak (BooleanState) sensor."""
+
+    id = "matterwatersensor"
+    drivers = [
+        {"driver": "ST", "value": 0, "uom": 2},
+        {"driver": "BATLVL", "value": 0, "uom": 51},
+        {"driver": "BATVOLT", "value": 0, "uom": 72},
+    ]
+
+    def __init__(self, polyglot, primary, address, name, matter_client, node_id):
+        super(MatterWaterSensor, self).__init__(
+            polyglot, primary, address, name, matter_client, node_id, 0
+        )
+
+    def set_leak(self, value):
+        self._set_live_driver("ST", 1 if value else 0)
+
+    def set_battery(self, value):
+        if isinstance(value, (int, float)):
+            self._set_live_driver("BATLVL", max(0, min(100, value / 2)))
+
+    def set_battery_voltage(self, value):
+        if isinstance(value, (int, float)):
+            self._set_live_driver("BATVOLT", round(value / 1000.0, 3))
+
+    def query(self, command=None):
+        self.reportDrivers()
+
+    def on_attribute(self, cluster, attribute, value):
+        if attribute != "0" and not (cluster == "47" and attribute in ("11", "12")):
+            return
+        if cluster == "69":
+            self.set_leak(value)
+        elif cluster == "47" and attribute == "11":
+            self.set_battery_voltage(value)
+        elif cluster == "47" and attribute == "12":
+            self.set_battery(value)
+
+    commands = {"QUERY": query}
