@@ -101,8 +101,8 @@ AQI-4 = Poor
 AQI-5 = Very Poor
 AQI-6 = Extremely Poor
 
-OPENCLOSED-0 = Closed
-OPENCLOSED-1 = Open
+OPENCLOSED-0 = Open
+OPENCLOSED-1 = Closed
 
 BOOL-0 = Off
 BOOL-1 = On

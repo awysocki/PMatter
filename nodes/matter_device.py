@@ -790,7 +790,8 @@ class MatterContactSensor(MatterDevice):
         )
 
     def set_contact(self, value):
-        # BooleanState StateValue: True == open/no contact, False == closed.
+        # BooleanState StateValue mirrors the ISY driver directly:
+        # False (0) = open, True (1) = closed (magnet present).
         self._set_live_driver("ST", 1 if value else 0)
 
     def set_battery(self, value):
