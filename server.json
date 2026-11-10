@@ -11,12 +11,12 @@
   "testMode": false,
   "logLevel": "INFO",
   "profile_version": "1.0.4",
-  "version": "2026.11.1",
+  "version": "2026.11.2",
   "credits": [
     {
       "title": "PMatter: a NodeServer for python-matter-server Integration",
       "author": "Andy Wysocki",
-      "version": "2026.11.1",
+      "version": "2026.11.2",
       "date": "2026-11-10",
       "source": "",
       "license": "mit"
