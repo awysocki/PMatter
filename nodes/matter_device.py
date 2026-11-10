@@ -681,7 +681,7 @@ class MatterMotionSensor(MatterDevice):
     drivers = [
         {"driver": "ST", "value": 0, "uom": 2},
         {"driver": "GV1", "value": 0, "uom": 100},
-        {"driver": "GV2", "value": 0, "uom": 2},
+        {"driver": "GV2", "value": 0, "uom": 2, "name": "Occupancy"},
         {"driver": "BATLVL", "value": 0, "uom": 51},
         {"driver": "BATVOLT", "value": 0, "uom": 72},
     ]
