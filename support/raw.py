@@ -3,6 +3,7 @@ import json
 import os
 import sys
 import websockets
+from datetime import datetime
 
 DEFAULT_MATTER_URI = os.environ.get(
   "MATTER_SERVER_URI", "ws://localhost:5580/ws"
@@ -94,12 +95,14 @@ async def debug_events():
       if node_id_filter is not None:
         try:
           data = json.loads(msg)
-        # except (TypeError, ValueError):
+        except (TypeError, ValueError):
           data = {}
         packet_node_id = message_node_id(data)
         if packet_node_id is not None and packet_node_id != node_id_filter:
           continue
-      print(compact_message(msg), flush=True)
+      
+      timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
+      print(f"[{timestamp}] {compact_message(msg)}", flush=True)
 
 
 if __name__ == "__main__":

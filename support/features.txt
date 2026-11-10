@@ -1,0 +1,457 @@
+[root@qod test]# ./matt features 40
+
+--- Node 40 Feature List ---
+
+Endpoint 0:
+  [29] Descriptor
+    FeatureMap: 0 (0b0)
+    attr 0 (0): [{'0': 22, '1': 3}]
+    attr 1 (1): [60, 52, 49, 29, 31, 40, 43, 48, 50, 51, 53, 62, 63, 64, 65, 70]
+    attr 2 (2): []
+    attr 3 (3): [1, 2, 3, 4]
+    GeneratedCommandList (65528): []
+    AcceptedCommandList (65529): []
+    AttributeList (65531): [0, 1, 2, 3, 65532, 65533, 65528, 65529, 65531]
+    ClusterRevision (65533): 3
+  [31] AccessControl
+    FeatureMap: 1 (0b1)
+    attr 0 (0): [{'1': 5, '2': 2, '3': [112233], '4': None, '254': 2}]
+    attr 1 (1): []
+    attr 2 (2): 4
+    attr 3 (3): 3
+    attr 4 (4): 4
+    GeneratedCommandList (65528): []
+    AcceptedCommandList (65529): []
+    AttributeList (65531): [0, 1, 2, 3, 4, 65532, 65533, 65528, 65529, 65531]
+    ClusterRevision (65533): 2
+  [40] BasicInformation
+    FeatureMap: 0 (0b0)
+    attr 0 (0): 19
+    attr 1 (1): Meross
+    attr 2 (2): 4933
+    attr 3 (3): Smart Presence Sensor
+    attr 4 (4): 16898
+    attr 5 (5): MS605
+    attr 6 (6): XX
+    attr 7 (7): 0
+    attr 8 (8): 9.0
+    attr 9 (9): 16843776
+    attr 10 (10): 1.1.19
+    attr 11 (11): 20200101
+    attr 15 (15): 660701260303635
+    attr 18 (18): D5166F6696620F10
+    attr 19 (19): {'0': 3, '1': 3}
+    attr 20 (20): {'0': 0, '1': 14}
+    attr 21 (21): 17039872
+    attr 22 (22): 1
+    GeneratedCommandList (65528): []
+    AcceptedCommandList (65529): []
+    AttributeList (65531): [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 15, 18, 19, 20, 21, 22, 65532, 65533, 65528, 65529, 65531]
+    ClusterRevision (65533): 5
+  [43] Cluster 0x002B
+    FeatureMap: 0 (0b0)
+    attr 0 (0): en-US
+    attr 1 (1): ['en-US', 'en-GB']
+    GeneratedCommandList (65528): []
+    AcceptedCommandList (65529): []
+    AttributeList (65531): [0, 1, 65532, 65533, 65528, 65529, 65531]
+    ClusterRevision (65533): 1
+  [48] GeneralCommissioning
+    FeatureMap: 0 (0b0)
+    attr 0 (0): 0
+    attr 1 (1): {'0': 60, '1': 900}
+    attr 2 (2): 0
+    attr 3 (3): 0
+    attr 4 (4): True
+    GeneratedCommandList (65528): [1, 3, 5]
+    AcceptedCommandList (65529): [0, 2, 4]
+    AttributeList (65531): [0, 1, 2, 3, 4, 65532, 65533, 65528, 65529, 65531]
+    ClusterRevision (65533): 2
+  [49] NetworkCommissioning
+    FeatureMap: 2 (0b10)
+    attr 0 (0): 1
+    attr 1 (1): [{'0': 'xfaXuc8gYgc=', '1': True}]
+    attr 2 (2): 10
+    attr 3 (3): 20
+    attr 4 (4): True
+    attr 5 (5): 0
+    attr 6 (6): xfaXuc8gYgc=
+    attr 7 (7): None
+    attr 9 (9): 4
+    attr 10 (10): 5
+    GeneratedCommandList (65528): [1, 5, 7]
+    AcceptedCommandList (65529): [0, 3, 4, 6, 8]
+    AttributeList (65531): [0, 1, 4, 5, 6, 7, 2, 3, 9, 10, 65533, 65532, 65531, 65529, 65528]
+    ClusterRevision (65533): 2
+  [50] DiagnosticLogs
+    FeatureMap: 0 (0b0)
+    GeneratedCommandList (65528): [1]
+    AcceptedCommandList (65529): [0]
+    AttributeList (65531): [65532, 65533, 65528, 65529, 65531]
+    ClusterRevision (65533): 1
+  [51] GeneralDiagnostics
+    FeatureMap: 0 (0b0)
+    attr 0 (0): [{'0': 'ot', '1': True, '2': None, '3': None, '4': 'LoQW3aCJlqE=', '5': [], '6': ['/UmwT5J2AAFy3N/TCaMguw==', '/RnBf/8eAAAAAAD//gBYAQ==', '/RnBf/8eAAAwGbczQICNAw==', '/oAAAAAAAAAshBbdoImWoQ=='], '7': 4}]
+    attr 1 (1): 2
+    attr 2 (2): 427
+    attr 3 (3): 0
+    attr 4 (4): 1
+    attr 8 (8): False
+    GeneratedCommandList (65528): [2]
+    AcceptedCommandList (65529): [0, 1]
+    AttributeList (65531): [0, 1, 2, 3, 4, 8, 65532, 65533, 65528, 65529, 65531]
+    ClusterRevision (65533): 2
+  [52] SoftwareDiagnostics
+    FeatureMap: 0 (0b0)
+    attr 1 (1): 7632
+    attr 2 (2): 2252
+    GeneratedCommandList (65528): []
+    AcceptedCommandList (65529): []
+    AttributeList (65531): [1, 2, 65533, 65532, 65531, 65529, 65528]
+    ClusterRevision (65533): 1
+  [53] ThreadNetworkDiagnostics
+    FeatureMap: 15 (0b1111)
+    attr 0 (0): 25
+    attr 1 (1): 2
+    attr 2 (2): eero-thread-2509
+    attr 3 (3): 9481
+    attr 4 (4): 14264755694042374663
+    attr 5 (5): QP0ZwX//HgAA
+    attr 6 (6): 0
+    attr 7 (7): [{'0': 474139840699116176, '1': 235, '2': 22528, '3': 4055, '4': 3041, '5': 3, '6': -42, '7': -43, '8': 1, '9': 0, '10': True, '11': True, '12': True, '13': False}]
+    attr 8 (8): [{'0': 474139840699116176, '1': 22528, '2': 22, '3': 0, '4': 0, '5': 3, '6': 3, '7': 235, '8': True, '9': True}]
+    attr 9 (9): 463599312
+    attr 10 (10): 65
+    attr 11 (11): 204
+    attr 12 (12): 138
+    attr 13 (13): 49
+    attr 14 (14): 1
+    attr 15 (15): 1
+    attr 16 (16): 0
+    attr 17 (17): 0
+    attr 18 (18): 1
+    attr 19 (19): 1
+    attr 20 (20): 0
+    attr 21 (21): 0
+    attr 22 (22): 802
+    attr 23 (23): 801
+    attr 24 (24): 1
+    attr 25 (25): 801
+    attr 26 (26): 801
+    attr 27 (27): 1
+    attr 28 (28): 496
+    attr 29 (29): 306
+    attr 30 (30): 0
+    attr 31 (31): 0
+    attr 32 (32): 0
+    attr 33 (33): 15
+    attr 34 (34): 0
+    attr 35 (35): 0
+    attr 36 (36): 0
+    attr 37 (37): 0
+    attr 38 (38): 0
+    attr 39 (39): 249
+    attr 40 (40): 197
+    attr 41 (41): 1
+    attr 42 (42): 198
+    attr 43 (43): 0
+    attr 44 (44): 0
+    attr 45 (45): 0
+    attr 46 (46): 0
+    attr 47 (47): 0
+    attr 48 (48): 39
+    attr 49 (49): 0
+    attr 50 (50): 1
+    attr 51 (51): 0
+    attr 52 (52): 0
+    attr 53 (53): 0
+    attr 54 (54): 3
+    attr 55 (55): 9
+    attr 56 (56): 117529215434752
+    attr 57 (57): 0
+    attr 58 (58): 0
+    attr 59 (59): {'0': 672, '1': 15}
+    attr 60 (60): AAAAQA==
+    attr 61 (61): {'0': True, '1': False, '2': True, '3': True, '4': True, '5': True, '6': False, '7': True, '8': True, '9': True, '10': True, '11': True}
+    attr 62 (62): []
+    attr 63 (63): None
+    attr 64 (64): None
+    GeneratedCommandList (65528): []
+    AcceptedCommandList (65529): [0]
+    AttributeList (65531): [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 65532, 65533, 65528, 65529, 65531]
+    ClusterRevision (65533): 3
+  [60] AdministratorCommissioning
+    FeatureMap: 1 (0b1)
+    attr 0 (0): 0
+    attr 1 (1): None
+    attr 2 (2): None
+    GeneratedCommandList (65528): []
+    AcceptedCommandList (65529): [0, 2, 1]
+    AttributeList (65531): [0, 1, 2, 65533, 65532, 65531, 65529, 65528]
+    ClusterRevision (65533): 1
+  [62] NodeOperationalCredentials
+    FeatureMap: 0 (0b0)
+    attr 0 (0): [{'1': 'FTABAQIkAgE3AyQUABgmBM/5pDAmBU8wUkU3BiQVASQRKBgkBwEkCAEwCUEEfbSRr64zqb+ulDIf0j6TBSFKrm3Vz2Iuj4AztuEob2/HYyie73wTNpkRr/5RJEEpvEh55GNgz9cNo/vua5DLnDcKNQEoARgkAgE2AwQCBAEYMAQUCM8rmC7cyD9uSThcVsbJnc6JaOgwBRSzWFPM/1XvXeTZSbMaFNKvvQdl+xgwC0BWqgQ4iLaupDLparsNSoYcxZ78oMJPFbZ0JutDEaftln1wN8eArLiLTKLVcH05Y4hPGAp5ETQ+UXvX0pNoOampGA==', '2': None, '254': 2}]
+    attr 1 (1): [{'1': 'BHf3agspUQvkr884W1OfzQbyBIUsNT9Z5Rc4boxQ+mU3KDaB9qF4OiJJeoLlcitdBOVtamSR8U1ZudRefLN4q54=', '2': 65521, '3': 1, '4': 40, '5': 'HomeAssistant', '254': 2}]
+    attr 2 (2): 5
+    attr 3 (3): 2
+    attr 4 (4): ['FTABAQEkAgE3AyyEAlVTLAcGR29vZ2xlLAELTWF0dGVyIFJvb3QnFAEAAAD+////GCYEf9JDKSYFf5Rb5TcGLIQCVVMsBwZHb29nbGUsAQtNYXR0ZXIgUm9vdCcUAQAAAP7///8YJAcBJAgBMAlBBFs332VJwg3I1yKmuKy2YKinZM57r2xsIk9+6ENJaErX2An/ZQAz0VJ9zx+6rGqcOti0HtrJCfe1x2D9VCyJI3U3CjUBKQEkAgEYJAJgMAQUcsIB91cZE7NIygDKe0X0d0ZoyX4wBRRywgH3VxkTs0jKAMp7RfR3RmjJfhgwC0BlFksWat/xjBVhCozpG9cD6cH2d7cRzhM1BRUt8NoVERZ1rFWRzueGhRzdnv2tKWZ0vryyo6Mgm83nswnbVSxvGA==', 'FTABAQAkAgE3AyQUABgmBIBORDAmBQCF8UQ3BiQUABgkBwEkCAEwCUEEd/dqCylRC+SvzzhbU5/NBvIEhSw1P1nlFzhujFD6ZTcoNoH2oXg6Ikl6guVyK10E5W1qZJHxTVm51F58s3irnjcKNQEpARgkAmAwBBSzWFPM/1XvXeTZSbMaFNKvvQdl+zAFFLNYU8z/Ve9d5NlJsxoU0q+9B2X7GDALQJvdWABLZbFjuAGy/SZDlY1ceBmcONIXpzAWRWnEh4NP7itrea/qtPhttVf3qbi29d8y4aK/xZKBy2rvHihc910Y']
+    attr 5 (5): 2
+    GeneratedCommandList (65528): [1, 3, 5, 8]
+    AcceptedCommandList (65529): [0, 2, 4, 6, 7, 9, 10, 11]
+    AttributeList (65531): [0, 1, 2, 3, 4, 5, 65532, 65533, 65528, 65529, 65531]
+    ClusterRevision (65533): 2
+  [63] GroupKeyManagement
+    FeatureMap: 0 (0b0)
+    attr 0 (0): []
+    attr 1 (1): []
+    attr 2 (2): 4
+    attr 3 (3): 3
+    GeneratedCommandList (65528): [2, 5]
+    AcceptedCommandList (65529): [0, 1, 3, 4]
+    AttributeList (65531): [0, 1, 2, 3, 65532, 65533, 65528, 65529, 65531]
+    ClusterRevision (65533): 2
+  [64] FixedLabel
+    FeatureMap: 0 (0b0)
+    attr 0 (0): []
+    GeneratedCommandList (65528): []
+    AcceptedCommandList (65529): []
+    AttributeList (65531): [0, 65532, 65533, 65528, 65529, 65531]
+    ClusterRevision (65533): 1
+  [65] UserLabel
+    FeatureMap: 0 (0b0)
+    attr 0 (0): []
+    GeneratedCommandList (65528): []
+    AcceptedCommandList (65529): []
+    AttributeList (65531): [0, 65532, 65533, 65528, 65529, 65531]
+    ClusterRevision (65533): 1
+  [70] ProxyDiscovery
+    FeatureMap: 7 (0b111)
+    attr 0 (0): 300
+    attr 1 (1): 300
+    attr 2 (2): 5000
+    attr 4 (4): 0
+    attr 5 (5): 1
+    attr 9 (9): 1
+    GeneratedCommandList (65528): []
+    AcceptedCommandList (65529): []
+    AttributeList (65531): [0, 1, 2, 65532, 65533, 65528, 65529, 65531]
+    ClusterRevision (65533): 3
+
+Endpoint 1:
+  [3] Identify
+    FeatureMap: 0 (0b0)
+    attr 0 (0): 0
+    attr 1 (1): 0
+    GeneratedCommandList (65528): []
+    AcceptedCommandList (65529): [0, 64]
+    AttributeList (65531): [0, 1, 65532, 65533, 65528, 65529, 65531]
+    ClusterRevision (65533): 5
+  [29] Descriptor
+    FeatureMap: 0 (0b0)
+    attr 0 (0): [{'0': 262, '1': 3}, {'0': 17, '1': 1}]
+    attr 1 (1): [3, 29, 40, 47, 1024]
+    attr 2 (2): []
+    attr 3 (3): []
+    GeneratedCommandList (65528): []
+    AcceptedCommandList (65529): []
+    AttributeList (65531): [0, 1, 2, 3, 65532, 65533, 65528, 65529, 65531]
+    ClusterRevision (65533): 3
+  [40] BasicInformation
+    FeatureMap: 0 (0b0)
+    attr 0 (0): 19
+    attr 1 (1): Meross
+    attr 2 (2): 4933
+    attr 3 (3): Smart Presence Sensor
+    attr 4 (4): 16898
+    attr 5 (5): MS605_LIGHT_1
+    attr 6 (6): XX
+    attr 7 (7): 0
+    attr 8 (8): 9.0
+    attr 9 (9): 16843776
+    attr 10 (10): 1.1.19
+    attr 18 (18): D5166F6696620F10
+    attr 19 (19): {'0': 3, '1': 3}
+    attr 21 (21): 17039872
+    attr 22 (22): 1
+    GeneratedCommandList (65528): []
+    AcceptedCommandList (65529): []
+    AttributeList (65531): [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 18, 19, 21, 22, 65532, 65533, 65528, 65529, 65531]
+    ClusterRevision (65533): 5
+  [47] Cluster 0x002F
+    FeatureMap: 10 (0b1010)
+    attr 0 (0): 1
+    attr 1 (1): 1
+    attr 2 (2): bat
+    attr 12 (12): 200
+    attr 14 (14): 0
+    attr 15 (15): False
+    attr 16 (16): 2
+    attr 19 (19): bat
+    attr 25 (25): 1
+    attr 31 (31): []
+    GeneratedCommandList (65528): []
+    AcceptedCommandList (65529): []
+    AttributeList (65531): [0, 1, 2, 12, 14, 15, 16, 19, 25, 31, 65532, 65533, 65528, 65529, 65531]
+    ClusterRevision (65533): 2
+  [1024] IlluminanceMeasurement
+    FeatureMap: 0 (0b0)
+    attr 0 (0): 25764
+    attr 1 (1): 1
+    attr 2 (2): 65533
+    GeneratedCommandList (65528): []
+    AcceptedCommandList (65529): []
+    AttributeList (65531): [0, 1, 2, 65532, 65533, 65528, 65529, 65531]
+    ClusterRevision (65533): 3
+
+Endpoint 2:
+  [3] Identify
+    FeatureMap: 0 (0b0)
+    attr 0 (0): 0
+    attr 1 (1): 0
+    GeneratedCommandList (65528): []
+    AcceptedCommandList (65529): [0, 64]
+    AttributeList (65531): [0, 1, 65532, 65533, 65528, 65529, 65531]
+    ClusterRevision (65533): 5
+  [29] Descriptor
+    FeatureMap: 0 (0b0)
+    attr 0 (0): [{'0': 263, '1': 3}]
+    attr 1 (1): [3, 29, 40, 1030]
+    attr 2 (2): []
+    attr 3 (3): []
+    GeneratedCommandList (65528): []
+    AcceptedCommandList (65529): []
+    AttributeList (65531): [0, 1, 2, 3, 65532, 65533, 65528, 65529, 65531]
+    ClusterRevision (65533): 3
+  [40] BasicInformation
+    FeatureMap: 0 (0b0)
+    attr 0 (0): 19
+    attr 1 (1): Meross
+    attr 2 (2): 4933
+    attr 3 (3): Smart Presence Sensor
+    attr 4 (4): 16898
+    attr 5 (5): MS605_OCC_1
+    attr 6 (6): XX
+    attr 7 (7): 0
+    attr 8 (8): 9.0
+    attr 9 (9): 16843776
+    attr 10 (10): 1.1.19
+    attr 18 (18): D5166F6696620F10
+    attr 19 (19): {'0': 3, '1': 3}
+    attr 21 (21): 17039872
+    attr 22 (22): 1
+    GeneratedCommandList (65528): []
+    AcceptedCommandList (65529): []
+    AttributeList (65531): [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 18, 19, 21, 22, 65532, 65533, 65528, 65529, 65531]
+    ClusterRevision (65533): 5
+  [1030] OccupancySensing
+    FeatureMap: 34 (0b100010)
+    attr 0 (0): 1
+    attr 1 (1): 0
+    attr 2 (2): 1
+    GeneratedCommandList (65528): []
+    AcceptedCommandList (65529): []
+    AttributeList (65531): [0, 1, 2, 65532, 65533, 65528, 65529, 65531]
+    ClusterRevision (65533): 5
+
+Endpoint 3:
+  [3] Identify
+    FeatureMap: 0 (0b0)
+    attr 0 (0): 0
+    attr 1 (1): 0
+    GeneratedCommandList (65528): []
+    AcceptedCommandList (65529): [0, 64]
+    AttributeList (65531): [0, 1, 65532, 65533, 65528, 65529, 65531]
+    ClusterRevision (65533): 5
+  [29] Descriptor
+    FeatureMap: 0 (0b0)
+    attr 0 (0): [{'0': 263, '1': 3}]
+    attr 1 (1): [3, 29, 40, 1030]
+    attr 2 (2): []
+    attr 3 (3): []
+    GeneratedCommandList (65528): []
+    AcceptedCommandList (65529): []
+    AttributeList (65531): [0, 1, 2, 3, 65532, 65533, 65528, 65529, 65531]
+    ClusterRevision (65533): 3
+  [40] BasicInformation
+    FeatureMap: 0 (0b0)
+    attr 0 (0): 19
+    attr 1 (1): Meross
+    attr 2 (2): 4933
+    attr 3 (3): Smart Presence Sensor
+    attr 4 (4): 16898
+    attr 5 (5): MS605_OCC_2
+    attr 6 (6): XX
+    attr 7 (7): 0
+    attr 8 (8): 9.0
+    attr 9 (9): 16843776
+    attr 10 (10): 1.1.19
+    attr 18 (18): D5166F6696620F10
+    attr 19 (19): {'0': 3, '1': 3}
+    attr 21 (21): 17039872
+    attr 22 (22): 1
+    GeneratedCommandList (65528): []
+    AcceptedCommandList (65529): []
+    AttributeList (65531): [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 18, 19, 21, 22, 65532, 65533, 65528, 65529, 65531]
+    ClusterRevision (65533): 5
+  [1030] OccupancySensing
+    FeatureMap: 34 (0b100010)
+    attr 0 (0): 0
+    attr 1 (1): 0
+    attr 2 (2): 1
+    GeneratedCommandList (65528): []
+    AcceptedCommandList (65529): []
+    AttributeList (65531): [0, 1, 2, 65532, 65533, 65528, 65529, 65531]
+    ClusterRevision (65533): 5
+
+Endpoint 4:
+  [3] Identify
+    FeatureMap: 0 (0b0)
+    attr 0 (0): 0
+    attr 1 (1): 0
+    GeneratedCommandList (65528): []
+    AcceptedCommandList (65529): [0, 64]
+    AttributeList (65531): [0, 1, 65532, 65533, 65528, 65529, 65531]
+    ClusterRevision (65533): 5
+  [29] Descriptor
+    FeatureMap: 0 (0b0)
+    attr 0 (0): [{'0': 263, '1': 3}]
+    attr 1 (1): [3, 29, 40, 1030]
+    attr 2 (2): []
+    attr 3 (3): []
+    GeneratedCommandList (65528): []
+    AcceptedCommandList (65529): []
+    AttributeList (65531): [0, 1, 2, 3, 65532, 65533, 65528, 65529, 65531]
+    ClusterRevision (65533): 3
+  [40] BasicInformation
+    FeatureMap: 0 (0b0)
+    attr 0 (0): 19
+    attr 1 (1): Meross
+    attr 2 (2): 4933
+    attr 3 (3): Smart Presence Sensor
+    attr 4 (4): 16898
+    attr 5 (5): MS605_OCC_3
+    attr 6 (6): XX
+    attr 7 (7): 0
+    attr 8 (8): 9.0
+    attr 9 (9): 16843776
+    attr 10 (10): 1.1.19
+    attr 18 (18): D5166F6696620F10
+    attr 19 (19): {'0': 3, '1': 3}
+    attr 21 (21): 17039872
+    attr 22 (22): 1
+    GeneratedCommandList (65528): []
+    AcceptedCommandList (65529): []
+    AttributeList (65531): [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 18, 19, 21, 22, 65532, 65533, 65528, 65529, 65531]
+    ClusterRevision (65533): 5
+  [1030] OccupancySensing
+    FeatureMap: 34 (0b100010)
+    attr 0 (0): 0
+    attr 1 (1): 0
+    attr 2 (2): 1
+    GeneratedCommandList (65528): []
+    AcceptedCommandList (65529): []
+    AttributeList (65531): [0, 1, 2, 65532, 65533, 65528, 65529, 65531]
+    ClusterRevision (65533): 5
+
+[root@qod test]#                            

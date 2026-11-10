@@ -345,10 +345,23 @@ class Controller(udi_interface.Node):
                 air_quality = attributes.get(f"{endpoint_id}/91/0")
                 if air_quality is not None:
                     device.set_air_quality(air_quality)
+            
+            # Try to find battery info on endpoint 0, then fallback to any other endpoint
             battery = attributes.get("0/47/12")
+            if battery is None:
+                for ep in all_endpoints:
+                    battery = attributes.get(f"{ep}/47/12")
+                    if battery is not None:
+                        break
             if battery is not None:
                 device.set_battery(battery)
+                
             battery_voltage = attributes.get("0/47/11")
+            if battery_voltage is None:
+                for ep in all_endpoints:
+                    battery_voltage = attributes.get(f"{ep}/47/11")
+                    if battery_voltage is not None:
+                        break
             if battery_voltage is not None:
                 device.set_battery_voltage(battery_voltage)
 
@@ -370,18 +383,24 @@ class Controller(udi_interface.Node):
             for endpoint_id in endpoints_with_illuminance | endpoints_with_occupancy:
                 self.node_address_map[(node_id, endpoint_id)] = address
             self.node_address_map[(node_id, 0)] = address
-            for endpoint_id in endpoints_with_occupancy:
-                occupancy = attributes.get(f"{endpoint_id}/1030/0")
-                if occupancy is not None:
-                    device.set_occupancy(occupancy)
-            for endpoint_id in endpoints_with_illuminance:
-                illuminance = attributes.get(f"{endpoint_id}/1024/0")
-                if illuminance is not None:
-                    device.set_illuminance(illuminance)
+            
+            # Try to find battery info on endpoint 0, then fallback to any other endpoint
             battery = attributes.get("0/47/12")
+            if battery is None:
+                for ep in all_endpoints:
+                    battery = attributes.get(f"{ep}/47/12")
+                    if battery is not None:
+                        break
+            
             if battery is not None:
                 device.set_battery(battery)
+                
             battery_voltage = attributes.get("0/47/11")
+            if battery_voltage is None:
+                for ep in all_endpoints:
+                    battery_voltage = attributes.get(f"{ep}/47/11")
+                    if battery_voltage is not None:
+                        break
             if battery_voltage is not None:
                 device.set_battery_voltage(battery_voltage)
 
