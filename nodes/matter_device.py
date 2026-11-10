@@ -681,6 +681,7 @@ class MatterMotionSensor(MatterDevice):
     drivers = [
         {"driver": "ST", "value": 0, "uom": 2},
         {"driver": "GV1", "value": 0, "uom": 100},
+        {"driver": "GV2", "value": 0, "uom": 2},
         {"driver": "BATLVL", "value": 0, "uom": 51},
         {"driver": "BATVOLT", "value": 0, "uom": 72},
     ]
@@ -693,7 +694,7 @@ class MatterMotionSensor(MatterDevice):
     def set_occupancy(self, value):
         if isinstance(value, (int, float)):
             occupied = 1 if value else 0
-            self._set_live_driver("ST", occupied)
+            self._set_live_driver("GV2", occupied)
 
     def set_illuminance(self, value):
         if isinstance(value, (int, float)):
@@ -712,7 +713,7 @@ class MatterMotionSensor(MatterDevice):
         self.reportDrivers()
 
     def on_attribute(self, cluster, attribute, value):
-        if attribute != "0" and not (cluster == "47" and attribute in ("11", "12")):
+        if not (cluster == "1030" or cluster == "1024" or cluster == "47" or cluster == "6"):
             return
         if cluster == "1030":
             # Occupancy Sensing cluster
@@ -728,6 +729,9 @@ class MatterMotionSensor(MatterDevice):
             self.set_battery_voltage(value)
         elif cluster == "47" and attribute == "12":
             self.set_battery(value)
+        elif cluster == "6" and attribute == "0":
+            # On/Off cluster
+            self._set_live_driver("ST", 1 if value else 0)
 
     commands = {"QUERY": query}
 
