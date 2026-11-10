@@ -161,6 +161,7 @@
     <sts>
       <st id="ST" editor="bool" />
       <st id="GV1" editor="lux" />
+      <st id="GV2" editor="bool" />
       <st id="BATLVL" editor="pct" />
       <st id="BATVOLT" editor="volt" />
     </sts>
