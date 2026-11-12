@@ -52,9 +52,9 @@ def compact_message(message):
   if event_type == "node_event":
     event = data.get("data", {})
     return (
-        "EVENT node={node} ep={endpoint} cluster={cluster} event={event_id} data={data}"
+      "({node:>3}) EVENT ep={endpoint} cluster={cluster} event={event_id} data={data}"
         .format(
-            node=event.get("node_id", "?"),
+        node=str(event.get("node_id", "?")),
             endpoint=event.get("endpoint_id", "?"),
             cluster=event.get("cluster_id", "?"),
             event_id=event.get("event_id", "?"),
@@ -63,6 +63,8 @@ def compact_message(message):
     )
   if event_type == "attribute_updated":
     values = data.get("data", [])
+    if values:
+      return f"({str(values[0]):>3}) ATTR {values[1:]}"
     return f"ATTR {values}"
   if event_type:
     return f"EVENT {event_type}"
@@ -101,7 +103,7 @@ async def debug_events():
         if packet_node_id is not None and packet_node_id != node_id_filter:
           continue
       
-      timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
+      timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
       print(f"[{timestamp}] {compact_message(msg)}", flush=True)
 
 
