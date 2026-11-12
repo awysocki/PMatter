@@ -18,8 +18,10 @@ async def send_command(payload):
     async with websockets.connect(SERVER_URI) as ws:
       await ws.recv()  # Consume handshake
       await ws.send(json.dumps(payload))
-      res = await ws.recv()
-      return json.loads(res)
+      while True:
+        res = json.loads(await ws.recv())
+        if res.get("message_id") == payload.get("message_id"):
+          return res
   except Exception as e:
     print(f"Error connecting to Matter server: {e}")
     sys.exit(1)
@@ -35,7 +37,7 @@ async def cmd_add(code, target_node_id=None):
       print(f"Requesting explicit Node ID: {args['node_id']}")
     except ValueError:
       print("[FAIL] Error: Node ID must be an integer.")
-      return
+      sys.exit(1)
 
   payload = {
       "message_id": "req_add",
@@ -44,11 +46,20 @@ async def cmd_add(code, target_node_id=None):
   }
   res = await send_command(payload)
 
-  if "error" in res:
-    print(f"[FAIL] Failed: {res['error']}")
-  else:
-    node_id = res.get("result", {}).get("node_id", "Unknown")
-    print(f"[OK] Device paired successfully! Assigned Node ID: {node_id}")
+  if "error" in res or res.get("error_code") not in (None, 0):
+    print("[FAIL] Commissioning failed. Server response:")
+    print(json.dumps(res, indent=2))
+    sys.exit(1)
+
+  result = res.get("result")
+  node_id = result.get("node_id") if isinstance(result, dict) else None
+  if node_id is None:
+    print("[WARN] Commissioning could not be confirmed; no node ID was returned.")
+    print("Server response:")
+    print(json.dumps(res, indent=2))
+    print("Check paired devices with: matt list")
+    sys.exit(1)
+  print(f"[OK] Device paired successfully! Assigned Node ID: {node_id}")
 
 
 async def cmd_del(node_id):
